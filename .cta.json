@@ -1,0 +1,25 @@
+{
+  "projectName": "everlight",
+  "mode": "file-router",
+  "typescript": true,
+  "packageManager": "bun",
+  "includeExamples": false,
+  "tailwind": true,
+  "addOnOptions": {},
+  "envVarValues": {},
+  "git": true,
+  "install": true,
+  "routerOnly": false,
+  "version": 1,
+  "framework": "solid",
+  "chosenAddOns": [
+    "biome",
+    "railway",
+    "better-auth",
+    "form",
+    "solid-ui",
+    "store",
+    "t3env",
+    "tanstack-query"
+  ]
+}
