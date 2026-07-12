@@ -1,40 +1,58 @@
+import { cva, type VariantProps } from 'class-variance-authority'
 import type { Component, JSX } from 'solid-js'
 import { cn } from '../../lib/utils'
 
-interface ButtonProps extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive'
-  size?: 'sm' | 'md' | 'lg'
-}
+const buttonVariants = cva(
+  "inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  {
+    variants: {
+      variant: {
+        default: 'bg-primary text-primary-foreground hover:bg-primary/80',
+        outline:
+          'border-border bg-background hover:bg-muted hover:text-foreground',
+        secondary:
+          'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        ghost:
+          'hover:bg-muted hover:text-foreground',
+        destructive:
+          'bg-destructive/10 text-destructive hover:bg-destructive/20',
+        link: 'text-primary underline-offset-4 hover:underline',
+      },
+      size: {
+        default: 'h-8 gap-1.5 px-2.5',
+        xs: 'h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs',
+        sm: 'h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem]',
+        lg: 'h-9 gap-1.5 px-2.5',
+        icon: 'size-8',
+        'icon-xs': 'size-6 rounded-[min(var(--radius-md),10px)]',
+        'icon-sm': 'size-7 rounded-[min(var(--radius-md),12px)]',
+        'icon-lg': 'size-9',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+      size: 'default',
+    },
+  },
+)
 
-export const Button: Component<ButtonProps> = (props) => {
-  const variants = {
-    primary:
-      'bg-primary text-primary-foreground hover:bg-primary/90',
-    secondary:
-      'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-    outline:
-      'border border-border bg-transparent hover:bg-accent hover:text-accent-foreground',
-    ghost:
-      'hover:bg-accent hover:text-accent-foreground',
-    destructive:
-      'bg-destructive text-destructive-foreground hover:bg-destructive/90',
-  }
+interface ButtonProps
+  extends JSX.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {}
 
-  const sizes = {
-    sm: 'h-8 px-3 text-xs',
-    md: 'h-9 px-4 text-sm',
-    lg: 'h-10 px-6 text-base',
-  }
-
+const Button: Component<ButtonProps> = (props) => {
   return (
     <button
       {...props}
       class={cn(
-        'inline-flex items-center justify-center gap-2 rounded-md font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
-        variants[props.variant ?? 'primary'],
-        sizes[props.size ?? 'md'],
-        props.class,
+        buttonVariants({
+          variant: props.variant,
+          size: props.size,
+          className: props.class,
+        }),
       )}
     />
   )
 }
+
+export { Button, buttonVariants }

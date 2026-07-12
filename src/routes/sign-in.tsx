@@ -37,7 +37,7 @@ function SignIn() {
       return
     }
 
-    window.location.href = '/'
+    window.location.href = '/dashboard'
   }
 
   return (
@@ -53,8 +53,8 @@ function SignIn() {
               <p class="text-muted-foreground">
                 Signed in as <strong class="text-foreground">{session().data?.user?.email}</strong>
               </p>
-              <a href="/">
-                <Button variant="outline">Go home</Button>
+              <a href="/dashboard">
+                <Button variant="outline">Dashboard</Button>
               </a>
             </CardContent>
           </Card>

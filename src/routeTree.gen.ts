@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
@@ -30,6 +31,11 @@ const SignInRoute = SignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -43,6 +49,7 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/verify-email': typeof VerifyEmailRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/verify-email': typeof VerifyEmailRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/verify-email': typeof VerifyEmailRoute
@@ -65,15 +74,34 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/sign-in' | '/sign-up' | '/verify-email' | '/api/auth/$'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/sign-in'
+    | '/sign-up'
+    | '/verify-email'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/sign-in' | '/sign-up' | '/verify-email' | '/api/auth/$'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/sign-in'
+    | '/sign-up'
+    | '/verify-email'
+    | '/api/auth/$'
   id:
-    '__root__' | '/' | '/sign-in' | '/sign-up' | '/verify-email' | '/api/auth/$'
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/sign-in'
+    | '/sign-up'
+    | '/verify-email'
+    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
@@ -103,6 +131,13 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof SignInRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -122,6 +157,7 @@ declare module '@tanstack/solid-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
   VerifyEmailRoute: VerifyEmailRoute,

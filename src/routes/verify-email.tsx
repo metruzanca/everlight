@@ -37,8 +37,8 @@ function VerifyEmail() {
                 </a>
               }
             >
-              <a href="/">
-                <Button>Go home</Button>
+              <a href="/dashboard">
+                <Button>Dashboard</Button>
               </a>
             </Show>
           </CardContent>

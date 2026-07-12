@@ -6,8 +6,9 @@
       "name": "everlight",
       "dependencies": {
         "@better-auth/drizzle-adapter": "^1.6.23",
-        "@fontsource/inter": "^5.1.1",
-        "@fontsource/poppins": "^5.2.7",
+        "@fontsource/geist-mono": "^5.2.8",
+        "@fontsource/inter": "^5.2.8",
+        "@fontsource/space-grotesk": "^5.2.10",
         "@t3-oss/env-core": "^0.13.10",
         "@tailwindcss/vite": "^4.1.18",
         "@tanstack/router-plugin": "^1.133.21",
@@ -217,9 +218,11 @@
 
     "@exodus/bytes": ["@exodus/bytes@1.15.1", "", { "peerDependencies": { "@noble/hashes": "^1.8.0 || ^2.0.0" }, "optionalPeers": ["@noble/hashes"] }, "sha512-S6mL0yNB/Abt9Ei4tq8gDhcczc4S3+vQ4ra7vxnAf+YHC02srtqxKKZghx2Dq6p0e66THKwR6r8N6P95wEty7Q=="],
 
+    "@fontsource/geist-mono": ["@fontsource/geist-mono@5.2.8", "", {}, "sha512-YqZUb3X42GjRaHkibUNyE8K4Rk9A6I9Ez81YpJYiuJN4ggmTW2ixoQpa9EWCPfXZtIsCQJTyrDoV9OJOZO/UcA=="],
+
     "@fontsource/inter": ["@fontsource/inter@5.2.8", "", {}, "sha512-P6r5WnJoKiNVV+zvW2xM13gNdFhAEpQ9dQJHt3naLvfg+LkF2ldgSLiF4T41lf1SQCM9QmkqPTn4TH568IRagg=="],
 
-    "@fontsource/poppins": ["@fontsource/poppins@5.2.7", "", {}, "sha512-6uQyPmseo4FgI97WIhA4yWRlNaoLk4vSDK/PyRwdqqZb5zAEuc+Kunt8JTMcsHYUEGYBtN15SNkMajMdqUSUmg=="],
+    "@fontsource/space-grotesk": ["@fontsource/space-grotesk@5.2.10", "", {}, "sha512-XNXEbT74OIITPqw2H6HXwPDp85fy43uxfBwFR5PU+9sLnjuLj12KlhVM9nZVN6q6dlKjkuN8JisW/OBxwxgUew=="],
 
     "@img/colour": ["@img/colour@1.1.0", "", {}, "sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ=="],
 
