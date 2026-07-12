@@ -8,6 +8,10 @@ import * as schema from '../db/schema'
 
 const resend = new Resend(env.RESEND_API_KEY)
 
+const baseUrl = env.RAILWAY_PUBLIC_DOMAIN
+  ? `https://${env.RAILWAY_PUBLIC_DOMAIN}`
+  : env.BETTER_AUTH_URL ?? `http://localhost:${env.PORT}`
+
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: 'pg',
@@ -19,7 +23,7 @@ export const auth = betterAuth({
   emailVerification: {
     sendOnSignUp: true,
     sendVerificationEmail: async ({ user, token }) => {
-      const verifyUrl = `${env.BETTER_AUTH_URL}/api/auth/verify-email?token=${token}&callbackURL=/verify-email`
+      const verifyUrl = `${baseUrl}/api/auth/verify-email?token=${token}&callbackURL=/verify-email`
 
       if (env.ENABLE_EMAIL) {
         await resend.emails.send({

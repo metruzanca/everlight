@@ -1,12 +1,18 @@
+import { config } from 'dotenv'
 import { createEnv } from '@t3-oss/env-core'
 import { z } from 'zod'
 
+// Only used in development
+config({ path: '.env.local' })
+
 export const env = createEnv({
   server: {
-    BETTER_AUTH_URL: z.string().url(),
+    BETTER_AUTH_URL: z.string().url().optional(),
     BETTER_AUTH_SECRET: z.string().min(1),
     DATABASE_URL: z.string().url(),
     ENABLE_EMAIL: z.coerce.boolean().optional().default(false),
+    PORT: z.coerce.number().optional().default(3000),
+    RAILWAY_PUBLIC_DOMAIN: z.string().optional(),
     RESEND_API_KEY: z.string().min(1),
     RESEND_FROM_EMAIL: z.string().email(),
     SERVER_URL: z.string().url().optional(),
@@ -18,7 +24,7 @@ export const env = createEnv({
     VITE_APP_TITLE: z.string().min(1).optional(),
   },
 
-  runtimeEnv: import.meta.env,
+  runtimeEnv: { ...process.env, ...import.meta.env },
 
   emptyStringAsUndefined: true,
 })
