@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/solid-router'
-import { createSignal, Show } from 'solid-js'
+import { createEffect, createSignal, Show } from 'solid-js'
 import { authClient } from '../lib/auth-client'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
@@ -16,6 +16,12 @@ function SignIn() {
   const [password, setPassword] = createSignal('')
   const [error, setError] = createSignal('')
   const [loading, setLoading] = createSignal(false)
+
+  createEffect(() => {
+    if (session().data?.user) {
+      window.location.href = '/dashboard'
+    }
+  })
 
   const handleSignIn = async (e: SubmitEvent) => {
     e.preventDefault()

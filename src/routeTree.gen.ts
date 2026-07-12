@@ -14,6 +14,8 @@ import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiVapiStatsRouteImport } from './routes/api/vapi/stats'
+import { Route as ApiVapiCallsRouteImport } from './routes/api/vapi/calls'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
@@ -41,6 +43,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiVapiStatsRoute = ApiVapiStatsRouteImport.update({
+  id: '/api/vapi/stats',
+  path: '/api/vapi/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiVapiCallsRoute = ApiVapiCallsRouteImport.update({
+  id: '/api/vapi/calls',
+  path: '/api/vapi/calls',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -54,6 +66,8 @@ export interface FileRoutesByFullPath {
   '/sign-up': typeof SignUpRoute
   '/verify-email': typeof VerifyEmailRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/vapi/calls': typeof ApiVapiCallsRoute
+  '/api/vapi/stats': typeof ApiVapiStatsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +76,8 @@ export interface FileRoutesByTo {
   '/sign-up': typeof SignUpRoute
   '/verify-email': typeof VerifyEmailRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/vapi/calls': typeof ApiVapiCallsRoute
+  '/api/vapi/stats': typeof ApiVapiStatsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,6 +87,8 @@ export interface FileRoutesById {
   '/sign-up': typeof SignUpRoute
   '/verify-email': typeof VerifyEmailRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/vapi/calls': typeof ApiVapiCallsRoute
+  '/api/vapi/stats': typeof ApiVapiStatsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -81,6 +99,8 @@ export interface FileRouteTypes {
     | '/sign-up'
     | '/verify-email'
     | '/api/auth/$'
+    | '/api/vapi/calls'
+    | '/api/vapi/stats'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -89,6 +109,8 @@ export interface FileRouteTypes {
     | '/sign-up'
     | '/verify-email'
     | '/api/auth/$'
+    | '/api/vapi/calls'
+    | '/api/vapi/stats'
   id:
     | '__root__'
     | '/'
@@ -97,6 +119,8 @@ export interface FileRouteTypes {
     | '/sign-up'
     | '/verify-email'
     | '/api/auth/$'
+    | '/api/vapi/calls'
+    | '/api/vapi/stats'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -106,6 +130,8 @@ export interface RootRouteChildren {
   SignUpRoute: typeof SignUpRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiVapiCallsRoute: typeof ApiVapiCallsRoute
+  ApiVapiStatsRoute: typeof ApiVapiStatsRoute
 }
 
 declare module '@tanstack/solid-router' {
@@ -145,6 +171,20 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/vapi/stats': {
+      id: '/api/vapi/stats'
+      path: '/api/vapi/stats'
+      fullPath: '/api/vapi/stats'
+      preLoaderRoute: typeof ApiVapiStatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/vapi/calls': {
+      id: '/api/vapi/calls'
+      path: '/api/vapi/calls'
+      fullPath: '/api/vapi/calls'
+      preLoaderRoute: typeof ApiVapiCallsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -162,6 +202,8 @@ const rootRouteChildren: RootRouteChildren = {
   SignUpRoute: SignUpRoute,
   VerifyEmailRoute: VerifyEmailRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiVapiCallsRoute: ApiVapiCallsRoute,
+  ApiVapiStatsRoute: ApiVapiStatsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

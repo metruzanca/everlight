@@ -34,6 +34,7 @@
     "@tanstack/solid-start": "latest",
     "@tanstack/solid-store": "latest",
     "@tanstack/store": "latest",
+    "@vapi-ai/server-sdk": "^1.2.0",
     "better-auth": "^1.5.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

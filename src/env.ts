@@ -16,6 +16,7 @@ export const env = createEnv({
     RESEND_API_KEY: z.string().min(1),
     RESEND_FROM_EMAIL: z.string().email(),
     SERVER_URL: z.string().url().optional(),
+    VAPI_API_KEY: z.string().optional(),
   },
 
   clientPrefix: 'VITE_',
