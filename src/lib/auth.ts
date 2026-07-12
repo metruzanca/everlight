@@ -19,12 +19,17 @@ export const auth = betterAuth({
     sendOnSignUp: true,
     sendVerificationEmail: async ({ user, token }) => {
       const verifyUrl = `${process.env.BETTER_AUTH_URL}/api/auth/verify-email?token=${token}&callbackURL=/verify-email`
-      await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL!,
-        to: user.email,
-        subject: 'Verify your email',
-        html: `<a href="${verifyUrl}">Verify your email</a>`,
-      })
+
+      if (process.env.ENABLE_EMAIL === 'true') {
+        await resend.emails.send({
+          from: process.env.RESEND_FROM_EMAIL!,
+          to: user.email,
+          subject: 'Verify your email',
+          html: `<a href="${verifyUrl}">Verify your email</a>`,
+        })
+      } else {
+        console.log(`[DEV] Verification URL for ${user.email}: ${verifyUrl}`)
+      }
     },
   },
   plugins: [tanstackStartCookies()],
