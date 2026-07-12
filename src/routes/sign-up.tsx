@@ -1,6 +1,10 @@
 import { createFileRoute } from '@tanstack/solid-router'
 import { createSignal, Show } from 'solid-js'
 import { authClient } from '../lib/auth-client'
+import { Button } from '../components/ui/button'
+import { Input } from '../components/ui/input'
+import { Label } from '../components/ui/label'
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../components/ui/card'
 
 export const Route = createFileRoute('/sign-up')({
   component: SignUp,
@@ -37,101 +41,127 @@ function SignUp() {
   }
 
   return (
-    <div class="flex min-h-screen items-center justify-center">
-      <div class="w-full max-w-sm mx-4">
-        <Show when={session().data?.user}>
-          <div class="text-center space-y-4">
-            <p class="text-neutral-600">
-              Signed in as <strong>{session().data?.user?.email}</strong>
-            </p>
-            <a href="/" class="text-sm text-blue-600 hover:underline">
-              Go home
-            </a>
+    <div class="min-h-screen">
+      <Show when={session().data?.user}>
+        <div class="p-8 max-w-lg mx-auto">
+          <div class="flex items-center gap-2">
+            <img src="/logo.svg" alt="Everlight" class="h-7 w-7" />
+            <span class="text-lg font-semibold">Everlight</span>
           </div>
-        </Show>
+          <Card class="mt-6 text-center">
+            <CardContent class="pt-6 space-y-4">
+              <p class="text-muted-foreground">
+                Signed in as <strong class="text-foreground">{session().data?.user?.email}</strong>
+              </p>
+              <a href="/">
+                <Button variant="outline">Go home</Button>
+              </a>
+            </CardContent>
+          </Card>
+        </div>
+      </Show>
 
-        <Show when={!session().data?.user && !sent()}>
-          <h1 class="text-2xl font-bold mb-6 text-center">Create Account</h1>
+      <Show when={!session().data?.user && !sent()}>
+        <nav class="flex items-center justify-between px-6 py-4">
+          <a href="/" class="flex items-center gap-2">
+            <img src="/logo.svg" alt="Everlight" class="h-7 w-7" />
+            <span class="text-lg font-semibold">Everlight</span>
+          </a>
+        </nav>
 
-          <form onSubmit={handleSignUp} class="space-y-4">
-            <Show when={error()}>
-              <p class="text-sm text-red-600 bg-red-50 px-3 py-2 rounded">{error()}</p>
-            </Show>
+        <div class="flex items-center justify-center px-4 pt-16">
+          <Card class="w-full max-w-sm">
+            <CardHeader>
+              <CardTitle class="text-center">Create Account</CardTitle>
+            </CardHeader>
 
-            <div>
-              <label for="name" class="block text-sm font-medium mb-1">
-                Name
-              </label>
-              <input
-                id="name"
-                type="text"
-                value={name()}
-                onInput={(e) => setName(e.currentTarget.value)}
-                required
-                class="w-full px-3 py-2 border rounded text-sm"
-              />
-            </div>
+            <form onSubmit={handleSignUp}>
+              <CardContent class="space-y-4">
+                <Show when={error()}>
+                  <p class="text-sm text-accent bg-accent/10 px-3 py-2 rounded-md">{error()}</p>
+                </Show>
 
-            <div>
-              <label for="email" class="block text-sm font-medium mb-1">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email()}
-                onInput={(e) => setEmail(e.currentTarget.value)}
-                required
-                class="w-full px-3 py-2 border rounded text-sm"
-              />
-            </div>
+                <div class="space-y-2">
+                  <Label for="name">Name</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    value={name()}
+                    onInput={(e) => setName(e.currentTarget.value)}
+                    required
+                  />
+                </div>
 
-            <div>
-              <label for="password" class="block text-sm font-medium mb-1">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password()}
-                onInput={(e) => setPassword(e.currentTarget.value)}
-                required
-                class="w-full px-3 py-2 border rounded text-sm"
-              />
-            </div>
+                <div class="space-y-2">
+                  <Label for="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email()}
+                    onInput={(e) => setEmail(e.currentTarget.value)}
+                    required
+                  />
+                </div>
 
-            <button
-              type="submit"
-              disabled={loading()}
-              class="w-full py-2 px-4 bg-neutral-900 text-white rounded text-sm font-medium hover:bg-neutral-800 disabled:opacity-50"
-            >
-              {loading() ? 'Creating account...' : 'Create Account'}
-            </button>
-          </form>
+                <div class="space-y-2">
+                  <Label for="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password()}
+                    onInput={(e) => setPassword(e.currentTarget.value)}
+                    required
+                  />
+                </div>
+              </CardContent>
 
-          <p class="text-center text-sm text-neutral-500 mt-6">
-            Already have an account?{' '}
-            <a href="/sign-in" class="text-blue-600 hover:underline">
-              Sign in
-            </a>
-          </p>
-        </Show>
+              <CardFooter class="flex-col gap-3">
+                <Button
+                  type="submit"
+                  disabled={loading()}
+                  class="w-full"
+                >
+                  {loading() ? 'Creating account...' : 'Create Account'}
+                </Button>
+              </CardFooter>
+            </form>
 
-        <Show when={!session().data?.user && sent()}>
-          <div class="text-center space-y-4">
-            <h1 class="text-2xl font-bold">Check your email</h1>
-            <p class="text-neutral-600">
-              We sent a verification link to <strong>{email()}</strong>.
-            </p>
-            <p class="text-sm text-neutral-500">
-              Click the link to verify your email and sign in.
-            </p>
-            <a href="/sign-in" class="inline-block mt-4 text-sm text-blue-600 hover:underline">
-              Go to sign in
-            </a>
-          </div>
-        </Show>
-      </div>
+            <CardContent class="text-center text-sm text-muted-foreground">
+              Already have an account?{' '}
+              <a href="/sign-in" class="text-accent hover:underline">
+                Sign in
+              </a>
+            </CardContent>
+          </Card>
+        </div>
+      </Show>
+
+      <Show when={!session().data?.user && sent()}>
+        <nav class="flex items-center justify-between px-6 py-4">
+          <a href="/" class="flex items-center gap-2">
+            <img src="/logo.svg" alt="Everlight" class="h-7 w-7" />
+            <span class="text-lg font-semibold">Everlight</span>
+          </a>
+        </nav>
+
+        <div class="flex items-center justify-center px-4 pt-16">
+          <Card class="w-full max-w-sm text-center">
+            <CardContent class="pt-6 space-y-4">
+              <div class="text-3xl">✉️</div>
+              <CardTitle>Check your email</CardTitle>
+              <p class="text-muted-foreground">
+                We sent a verification link to <strong class="text-foreground">{email()}</strong>.
+              </p>
+              <p class="text-sm text-muted-foreground">
+                Click the link to verify your email and sign in.
+              </p>
+              <a href="/sign-in">
+                <Button variant="outline">Go to sign in</Button>
+              </a>
+            </CardContent>
+          </Card>
+        </div>
+      </Show>
     </div>
   )
 }
