@@ -13,6 +13,7 @@ function SignUp() {
   const [password, setPassword] = createSignal('')
   const [error, setError] = createSignal('')
   const [loading, setLoading] = createSignal(false)
+  const [sent, setSent] = createSignal(false)
 
   const handleSignUp = async (e: SubmitEvent) => {
     e.preventDefault()
@@ -31,14 +32,13 @@ function SignUp() {
       return
     }
 
-    window.location.href = '/'
+    setSent(true)
+    setLoading(false)
   }
 
   return (
     <div class="flex min-h-screen items-center justify-center">
       <div class="w-full max-w-sm mx-4">
-        <h1 class="text-2xl font-bold mb-6 text-center">Create Account</h1>
-
         <Show when={session().data?.user}>
           <div class="text-center space-y-4">
             <p class="text-neutral-600">
@@ -50,7 +50,9 @@ function SignUp() {
           </div>
         </Show>
 
-        <Show when={!session().data?.user}>
+        <Show when={!session().data?.user && !sent()}>
+          <h1 class="text-2xl font-bold mb-6 text-center">Create Account</h1>
+
           <form onSubmit={handleSignUp} class="space-y-4">
             <Show when={error()}>
               <p class="text-sm text-red-600 bg-red-50 px-3 py-2 rounded">{error()}</p>
@@ -113,6 +115,21 @@ function SignUp() {
               Sign in
             </a>
           </p>
+        </Show>
+
+        <Show when={!session().data?.user && sent()}>
+          <div class="text-center space-y-4">
+            <h1 class="text-2xl font-bold">Check your email</h1>
+            <p class="text-neutral-600">
+              We sent a verification link to <strong>{email()}</strong>.
+            </p>
+            <p class="text-sm text-neutral-500">
+              Click the link to verify your email and sign in.
+            </p>
+            <a href="/sign-in" class="inline-block mt-4 text-sm text-blue-600 hover:underline">
+              Go to sign in
+            </a>
+          </div>
         </Show>
       </div>
     </div>

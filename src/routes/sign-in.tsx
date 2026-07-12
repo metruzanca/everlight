@@ -24,7 +24,11 @@ function SignIn() {
     })
 
     if (signInError) {
-      setError(signInError.message || signInError.code || 'Something went wrong')
+      if (signInError.code === 'EMAIL_NOT_VERIFIED') {
+        setError('Please check your email for the verification link before signing in.')
+      } else {
+        setError(signInError.message || signInError.code || 'Something went wrong')
+      }
       setLoading(false)
       return
     }
@@ -35,8 +39,6 @@ function SignIn() {
   return (
     <div class="flex min-h-screen items-center justify-center">
       <div class="w-full max-w-sm mx-4">
-        <h1 class="text-2xl font-bold mb-6 text-center">Sign In</h1>
-
         <Show when={session().data?.user}>
           <div class="text-center space-y-4">
             <p class="text-neutral-600">
@@ -49,9 +51,11 @@ function SignIn() {
         </Show>
 
         <Show when={!session().data?.user}>
+          <h1 class="text-2xl font-bold mb-6 text-center">Sign In</h1>
+
           <form onSubmit={handleSignIn} class="space-y-4">
             <Show when={error()}>
-              <p class="text-sm text-red-600 bg-red-50 px-3 py-2 rounded">{error()}</p>
+              <p class="text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded">{error()}</p>
             </Show>
 
             <div>
