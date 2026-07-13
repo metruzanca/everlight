@@ -6,6 +6,7 @@ import { Logos } from '../components/landing/logos'
 import { Features } from '../components/landing/features'
 import { HowItWorks } from '../components/landing/how-it-works'
 import { Stats } from '../components/landing/stats'
+import { Comparison } from '../components/landing/comparison'
 import { Faq } from '../components/landing/faq'
 import { Cta } from '../components/landing/cta'
 import { SiteFooter } from '../components/landing/site-footer'
@@ -25,6 +26,7 @@ function Home() {
         <Features />
         <HowItWorks />
         <Stats />
+        <Comparison />
         <Faq />
         <Cta authed={authed()} />
       </main>
