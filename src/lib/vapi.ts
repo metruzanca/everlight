@@ -1,7 +1,21 @@
 import { VapiClient } from '@vapi-ai/server-sdk'
 import { env } from '../env'
 
-const client = new VapiClient({ token: env.VAPI_API_KEY! })
+function createClient() {
+  if (!env.VAPI_API_KEY) return null
+  try {
+    return new VapiClient({ token: env.VAPI_API_KEY })
+  } catch {
+    return null
+  }
+}
+
+let _client: VapiClient | null | undefined = undefined
+
+function getClient() {
+  if (_client === undefined) _client = createClient()
+  return _client
+}
 
 const businessHours = {
   startHour: 9,
@@ -37,6 +51,11 @@ function isInBusinessHours(date: Date): boolean {
 }
 
 export async function getStats(): Promise<VapiStats> {
+  const client = getClient()
+  if (!client) {
+    throw new Error('VAPI_API_KEY not configured')
+  }
+
   const now = new Date()
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
@@ -99,6 +118,11 @@ export async function getStats(): Promise<VapiStats> {
 }
 
 export async function getCallLogs(limit = 20): Promise<VapiCallLogEntry[]> {
+  const client = getClient()
+  if (!client) {
+    throw new Error('VAPI_API_KEY not configured')
+  }
+
   const calls = await client.calls.list({ limit })
 
   return calls.map((call) => {

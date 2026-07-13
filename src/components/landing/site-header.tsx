@@ -1,4 +1,4 @@
-import { createSignal } from 'solid-js'
+import { createSignal, Show } from 'solid-js'
 import { AudioLines, Menu, X } from 'lucide-solid'
 import { Button } from '../ui/button'
 
@@ -9,7 +9,7 @@ const navLinks = [
   { label: 'FAQ', href: '#faq' },
 ]
 
-export function SiteHeader() {
+export function SiteHeader(props: { authed?: boolean }) {
   const [open, setOpen] = createSignal(false)
 
   return (
@@ -27,7 +27,6 @@ export function SiteHeader() {
         <nav class="hidden items-center gap-8 md:flex">
           {navLinks.map((link) => (
             <a
-             
               href={link.href}
               class="text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
@@ -37,20 +36,34 @@ export function SiteHeader() {
         </nav>
 
         <div class="hidden items-center gap-3 md:flex">
-          <a
-            href="/sign-in"
-            class="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          <Show
+            when={!props.authed}
+            fallback={
+              <a href="/dashboard">
+                <Button
+                  class="rounded-full bg-primary font-medium text-primary-foreground hover:bg-primary/90"
+                  size="sm"
+                >
+                  Dashboard
+                </Button>
+              </a>
+            }
           >
-            Sign in
-          </a>
-          <a href="/sign-up">
-            <Button
-              class="rounded-full bg-primary font-medium text-primary-foreground hover:bg-primary/90"
-              size="sm"
+            <a
+              href="/sign-in"
+              class="text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
-              Get started
-            </Button>
-          </a>
+              Sign in
+            </a>
+            <a href="/sign-up">
+              <Button
+                class="rounded-full bg-primary font-medium text-primary-foreground hover:bg-primary/90"
+                size="sm"
+              >
+                Get started
+              </Button>
+            </a>
+          </Show>
         </div>
 
         <button
@@ -73,7 +86,6 @@ export function SiteHeader() {
           <nav class="flex flex-col gap-1">
             {navLinks.map((link) => (
               <a
-               
                 href={link.href}
                 onClick={() => setOpen(false)}
                 class="rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
@@ -81,11 +93,22 @@ export function SiteHeader() {
                 {link.label}
               </a>
             ))}
-            <a href="/sign-up">
-              <Button class="mt-2 w-full rounded-full bg-primary font-medium text-primary-foreground hover:bg-primary/90">
-                Get started
-              </Button>
-            </a>
+            <Show
+              when={!props.authed}
+              fallback={
+                <a href="/dashboard">
+                  <Button class="mt-2 w-full rounded-full bg-primary font-medium text-primary-foreground hover:bg-primary/90">
+                    Dashboard
+                  </Button>
+                </a>
+              }
+            >
+              <a href="/sign-up">
+                <Button class="mt-2 w-full rounded-full bg-primary font-medium text-primary-foreground hover:bg-primary/90">
+                  Get started
+                </Button>
+              </a>
+            </Show>
           </nav>
         </div>
       )}

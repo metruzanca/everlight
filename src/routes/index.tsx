@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/solid-router'
+import { authClient } from '../lib/auth-client'
 import { SiteHeader } from '../components/landing/site-header'
 import { Hero } from '../components/landing/hero'
 import { Logos } from '../components/landing/logos'
@@ -12,17 +13,20 @@ import { SiteFooter } from '../components/landing/site-footer'
 export const Route = createFileRoute('/')({ component: Home })
 
 function Home() {
+  const session = authClient.useSession()
+  const authed = () => !!session().data?.user
+
   return (
     <div class="min-h-screen">
-      <SiteHeader />
+      <SiteHeader authed={authed()} />
       <main>
-        <Hero />
+        <Hero authed={authed()} />
         <Logos />
         <Features />
         <HowItWorks />
         <Stats />
         <Faq />
-        <Cta />
+        <Cta authed={authed()} />
       </main>
       <SiteFooter />
     </div>

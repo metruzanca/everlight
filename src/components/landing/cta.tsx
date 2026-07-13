@@ -1,8 +1,9 @@
 import { ArrowRight, PhoneCall } from 'lucide-solid'
+import { Show } from 'solid-js'
 import { Button } from '../ui/button'
 import { VoiceWaveform } from '../ui/voice-waveform'
 
-export function Cta() {
+export function Cta(props: { authed?: boolean }) {
   return (
     <section class="pb-24">
       <div class="mx-auto max-w-6xl px-4 sm:px-6">
@@ -22,25 +23,43 @@ export function Cta() {
             Deploy a 24/7 AI voice agent that books, answers, and never sleeps.
             See it live on your own use case.
           </p>
-          <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <a href="/sign-up">
+
+          <Show
+            when={!props.authed}
+            fallback={
+              <div class="mt-8">
+                <a href="/dashboard">
+                  <Button
+                    size="lg"
+                    class="w-full rounded-full bg-primary font-medium text-primary-foreground hover:bg-primary/90 sm:w-auto"
+                  >
+                    Dashboard
+                    <ArrowRight class="size-4" strokeWidth={2} />
+                  </Button>
+                </a>
+              </div>
+            }
+          >
+            <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <a href="/sign-up">
+                <Button
+                  size="lg"
+                  class="w-full rounded-full bg-primary font-medium text-primary-foreground hover:bg-primary/90 sm:w-auto"
+                >
+                  Get started
+                  <ArrowRight class="size-4" strokeWidth={2} />
+                </Button>
+              </a>
               <Button
                 size="lg"
-                class="w-full rounded-full bg-primary font-medium text-primary-foreground hover:bg-primary/90 sm:w-auto"
+                variant="outline"
+                class="w-full rounded-full border-border bg-background font-medium text-foreground hover:bg-background/80 hover:text-foreground sm:w-auto"
               >
-                Get started
-                <ArrowRight class="size-4" strokeWidth={2} />
+                <PhoneCall class="size-4" strokeWidth={1.75} />
+                Talk to an agent now
               </Button>
-            </a>
-            <Button
-              size="lg"
-              variant="outline"
-              class="w-full rounded-full border-border bg-background font-medium text-foreground hover:bg-background/80 hover:text-foreground sm:w-auto"
-            >
-              <PhoneCall class="size-4" strokeWidth={1.75} />
-              Talk to an agent now
-            </Button>
-          </div>
+            </div>
+          </Show>
         </div>
       </div>
     </section>

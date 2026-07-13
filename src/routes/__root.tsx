@@ -18,7 +18,7 @@ import '@fontsource/geist-mono/400.css'
 import '@fontsource/geist-mono/500.css'
 
 import { HydrationScript } from 'solid-js/web'
-import { Show, Suspense, createSignal } from 'solid-js'
+import { Show, Suspense, createSignal, type Component } from 'solid-js'
 
 import styleCss from '../styles.css?url'
 import { authClient } from '../lib/auth-client'
@@ -31,6 +31,10 @@ export const Route = createRootRouteWithContext()({
       { rel: 'apple-touch-icon', href: '/logo-192.png' },
     ],
   }),
+  errorComponent: (({ error, reset }) => (
+    <AppError error={error} reset={reset} />
+  )) as Component<any>,
+  notFoundComponent: (() => <AppNotFound />) as Component<any>,
   shellComponent: RootComponent,
 })
 
@@ -86,5 +90,76 @@ function VerifyBanner() {
         </Show>
       </div>
     </Show>
+  )
+}
+
+function AppError(props: { error: unknown; reset?: () => void }) {
+  const message = () =>
+    props.error instanceof Error ? props.error.message : 'An unexpected error occurred'
+
+  return (
+    <div class="min-h-screen flex flex-col">
+      <nav class="flex items-center justify-between px-6 py-4 border-b border-border/60">
+        <a href="/dashboard" class="flex items-center gap-2">
+          <img src="/logo.svg" alt="Everlight" class="h-7 w-7" />
+          <span class="text-lg font-semibold font-heading">Everlight</span>
+        </a>
+        <div class="flex items-center gap-3">
+          <a href="/dashboard" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            Dashboard
+          </a>
+          <button
+            onClick={() => props.reset?.()}
+            class="text-sm text-muted-foreground hover:text-foreground transition-colors underline"
+          >
+            Try again
+          </button>
+        </div>
+      </nav>
+
+      <div class="flex-1 flex items-center justify-center px-4">
+        <div class="max-w-md text-center space-y-4">
+          <div class="text-3xl">⚠️</div>
+          <h1 class="text-xl font-heading font-bold">Something went wrong</h1>
+          <p class="text-sm text-muted-foreground break-words">{message()}</p>
+          <a
+            href="/dashboard"
+            class="inline-block mt-2 h-9 px-4 leading-9 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+          >
+            Go to Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function AppNotFound() {
+  return (
+    <div class="min-h-screen flex flex-col">
+      <nav class="flex items-center justify-between px-6 py-4 border-b border-border/60">
+        <a href="/dashboard" class="flex items-center gap-2">
+          <img src="/logo.svg" alt="Everlight" class="h-7 w-7" />
+          <span class="text-lg font-semibold font-heading">Everlight</span>
+        </a>
+        <a href="/dashboard" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
+          Dashboard
+        </a>
+      </nav>
+
+      <div class="flex-1 flex items-center justify-center px-4">
+        <div class="max-w-md text-center space-y-4">
+          <div class="text-3xl">🔍</div>
+          <h1 class="text-xl font-heading font-bold">Page not found</h1>
+          <p class="text-sm text-muted-foreground">This page doesn't exist or has been moved.</p>
+          <a
+            href="/dashboard"
+            class="inline-block mt-2 h-9 px-4 leading-9 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+          >
+            Go to Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
   )
 }

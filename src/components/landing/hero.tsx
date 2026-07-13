@@ -6,10 +6,11 @@ import {
   CalendarCheck,
   Globe,
 } from 'lucide-solid'
+import { Show } from 'solid-js'
 import { Button } from '../ui/button'
 import { VoiceWaveform } from '../ui/voice-waveform'
 
-export function Hero() {
+export function Hero(props: { authed?: boolean }) {
   return (
     <section class="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-28">
       <div
@@ -39,25 +40,42 @@ export function Hero() {
             call, day or night.
           </p>
 
-          <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <a href="/sign-up">
+          <Show
+            when={!props.authed}
+            fallback={
+              <div class="mt-8">
+                <a href="/dashboard">
+                  <Button
+                    size="lg"
+                    class="w-full rounded-full bg-primary font-medium text-primary-foreground hover:bg-primary/90 sm:w-auto"
+                  >
+                    Dashboard
+                    <ArrowRight class="size-4" strokeWidth={2} />
+                  </Button>
+                </a>
+              </div>
+            }
+          >
+            <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <a href="/sign-up">
+                <Button
+                  size="lg"
+                  class="w-full rounded-full bg-primary font-medium text-primary-foreground hover:bg-primary/90 sm:w-auto"
+                >
+                  Get started
+                  <ArrowRight class="size-4" strokeWidth={2} />
+                </Button>
+              </a>
               <Button
                 size="lg"
-                class="w-full rounded-full bg-primary font-medium text-primary-foreground hover:bg-primary/90 sm:w-auto"
+                variant="outline"
+                class="w-full rounded-full border-border bg-card font-medium text-foreground hover:bg-card/80 hover:text-foreground sm:w-auto"
               >
-                Get started
-                <ArrowRight class="size-4" strokeWidth={2} />
+                <PhoneCall class="size-4" strokeWidth={1.75} />
+                Hear a live agent
               </Button>
-            </a>
-            <Button
-              size="lg"
-              variant="outline"
-              class="w-full rounded-full border-border bg-card font-medium text-foreground hover:bg-card/80 hover:text-foreground sm:w-auto"
-            >
-              <PhoneCall class="size-4" strokeWidth={1.75} />
-              Hear a live agent
-            </Button>
-          </div>
+            </div>
+          </Show>
         </div>
 
         <div class="relative mx-auto mt-16 max-w-2xl">
@@ -92,7 +110,6 @@ export function Hero() {
                 { icon: Clock, label: 'Avg. 1.2s reply' },
               ].map(({ icon: Icon, label }) => (
                 <div
-                 
                   class="flex flex-col items-center gap-2 rounded-xl border border-border bg-background/60 px-2 py-3 text-center"
                 >
                   <Icon class="size-5 text-primary" strokeWidth={1.75} />
