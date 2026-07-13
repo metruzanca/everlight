@@ -107,6 +107,14 @@ function SignIn() {
                     onInput={(e) => setPassword(e.currentTarget.value)}
                     required
                   />
+                  <div class="text-right">
+                    <a
+                      href="/forgot-password"
+                      class="text-xs text-muted-foreground hover:text-accent transition-colors"
+                    >
+                      Forgot password?
+                    </a>
+                  </div>
                 </div>
               </CardContent>
 

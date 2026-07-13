@@ -95,17 +95,19 @@ function Dashboard() {
       </Show>
 
       <Show when={session().data?.user}>
-        {(user) => (
-          <>
+        <>
             <nav class="flex items-center justify-between px-6 py-4 border-b border-border/60">
               <div class="flex items-center gap-2">
                 <img src="/logo.svg" alt="Everlight" class="h-7 w-7" />
                 <span class="text-lg font-semibold font-heading">Everlight</span>
               </div>
               <div class="flex items-center gap-4">
-                <span class="text-sm text-muted-foreground hidden sm:inline">
-                  {user().email}
-                </span>
+                <a
+                  href="/settings"
+                  class="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Settings
+                </a>
                 <Button
                   onClick={() => { void authClient.signOut() }}
                   variant="outline"
@@ -263,7 +265,6 @@ function Dashboard() {
               </section>
             </main>
           </>
-        )}
       </Show>
     </div>
   )
