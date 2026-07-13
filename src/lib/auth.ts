@@ -26,6 +26,7 @@ async function sendEmail(to: string, subject: string, html: string, devLog: stri
 }
 
 export const auth = betterAuth({
+  baseURL: baseUrl,
   database: drizzleAdapter(db, {
     provider: 'pg',
     schema,
