@@ -42,6 +42,7 @@ export type VapiCallLogEntry = {
   startedAt: string
   cost: number
   summary: string | null
+  assistantName: string
 }
 
 function isInBusinessHours(date: Date): boolean {
@@ -123,7 +124,15 @@ export async function getCallLogs(limit = 20): Promise<VapiCallLogEntry[]> {
     throw new Error('VAPI_API_KEY not configured')
   }
 
-  const calls = await client.calls.list({ limit })
+  const [assistants, calls] = await Promise.all([
+    client.assistants.list().catch(() => []),
+    client.calls.list({ limit }),
+  ])
+
+  const assistantNames = new Map<string, string>()
+  for (const a of assistants) {
+    if (a.id && a.name) assistantNames.set(a.id, a.name)
+  }
 
   return calls.map((call) => {
     const startedAt = call.startedAt ?? ''
@@ -131,6 +140,11 @@ export async function getCallLogs(limit = 20): Promise<VapiCallLogEntry[]> {
     const duration = startedAt && endedAt
       ? (new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000
       : 0
+
+    const assistantName =
+      call.assistant?.name
+      ?? (call.assistantId ? assistantNames.get(call.assistantId) : undefined)
+      ?? 'Unknown'
 
     return {
       id: call.id,
@@ -142,6 +156,7 @@ export async function getCallLogs(limit = 20): Promise<VapiCallLogEntry[]> {
       startedAt,
       cost: call.cost ?? 0,
       summary: call.analysis?.summary ?? null,
+      assistantName,
     }
   })
 }
