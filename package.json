@@ -33,6 +33,7 @@
     "@tanstack/solid-router-ssr-query": "latest",
     "@tanstack/solid-start": "latest",
     "@tanstack/solid-store": "latest",
+    "@tanstack/solid-table": "^8.21.3",
     "@tanstack/store": "latest",
     "@vapi-ai/server-sdk": "^1.2.0",
     "better-auth": "^1.5.3",

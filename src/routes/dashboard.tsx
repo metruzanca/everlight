@@ -1,5 +1,6 @@
 import { createFileRoute, CatchBoundary } from '@tanstack/solid-router'
 import { For, createSignal, createResource, Show, Suspense, onMount } from 'solid-js'
+import { createSolidTable, getCoreRowModel, createColumnHelper, flexRender } from '@tanstack/solid-table'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { AppNav } from '../components/ui/app-nav'
 
@@ -211,40 +212,96 @@ function MetricCard(props: {
   )
 }
 
+const columnHelper = createColumnHelper<CallLogEntry>()
+
+const columns = [
+  columnHelper.accessor('startedAt', {
+    header: 'Date',
+    cell: (info) => (
+      <span class="text-muted-foreground whitespace-nowrap">{formatDate(info.getValue())}</span>
+    ),
+  }),
+  columnHelper.accessor('assistantName', {
+    header: 'Assistant',
+    cell: (info) => (
+      <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-accent/10 text-accent">
+        {info.getValue()}
+      </span>
+    ),
+  }),
+  columnHelper.accessor((row) => row.customerNumber || row.phoneNumber || '—', {
+    id: 'from',
+    header: 'From',
+    cell: (info) => <span class="font-medium">{info.getValue()}</span>,
+  }),
+  columnHelper.accessor('duration', {
+    header: 'Duration',
+    cell: (info) => (
+      <span class="text-muted-foreground whitespace-nowrap">{formatDuration(info.getValue())}</span>
+    ),
+  }),
+  columnHelper.accessor('endedReason', {
+    header: 'Status',
+    cell: (info) => {
+      const value = info.getValue() || info.row.original.status
+      const isComplete = value === 'completed'
+      return (
+        <span class={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${isComplete ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+          {value}
+        </span>
+      )
+    },
+  }),
+  columnHelper.accessor('cost', {
+    header: 'Cost',
+    cell: (info) => (
+      <span class="text-muted-foreground whitespace-nowrap">{formatCurrency(info.getValue())}</span>
+    ),
+  }),
+  columnHelper.accessor('summary', {
+    header: 'Summary',
+    cell: (info) => (
+      <span class="text-muted-foreground max-w-[200px] truncate block">{info.getValue() || '—'}</span>
+    ),
+  }),
+]
+
 function CallLogsTable(props: { calls: CallLogEntry[] }) {
+  const table = createSolidTable({
+    get data() { return props.calls },
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  })
+
   return (
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead>
-          <tr class="border-b border-border text-left text-muted-foreground">
-            <th class="pb-3 pr-4 font-medium">Date</th>
-            <th class="pb-3 pr-4 font-medium">Assistant</th>
-            <th class="pb-3 pr-4 font-medium">From</th>
-            <th class="pb-3 pr-4 font-medium">Duration</th>
-            <th class="pb-3 pr-4 font-medium">Status</th>
-            <th class="pb-3 pr-4 font-medium">Cost</th>
-            <th class="pb-3 font-medium">Summary</th>
-          </tr>
+          <For each={table.getHeaderGroups()}>
+            {(headerGroup) => (
+              <tr class="border-b border-border text-left text-muted-foreground">
+                <For each={headerGroup.headers}>
+                  {(header) => (
+                    <th class="pb-3 pr-4 last:pr-0 font-medium">
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    </th>
+                  )}
+                </For>
+              </tr>
+            )}
+          </For>
         </thead>
         <tbody>
-          <For each={props.calls}>
-            {(call) => (
+          <For each={table.getRowModel().rows}>
+            {(row) => (
               <tr class="border-b border-border/60 hover:bg-muted/30 transition-colors">
-                <td class="py-3 pr-4 text-muted-foreground whitespace-nowrap">{formatDate(call.startedAt)}</td>
-                <td class="py-3 pr-4">
-                  <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-accent/10 text-accent">
-                    {call.assistantName}
-                  </span>
-                </td>
-                <td class="py-3 pr-4 font-medium">{call.customerNumber || call.phoneNumber || '—'}</td>
-                <td class="py-3 pr-4 text-muted-foreground whitespace-nowrap">{formatDuration(call.duration)}</td>
-                <td class="py-3 pr-4">
-                  <span class={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${call.endedReason === 'completed' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
-                    {call.endedReason || call.status}
-                  </span>
-                </td>
-                <td class="py-3 pr-4 text-muted-foreground whitespace-nowrap">{formatCurrency(call.cost)}</td>
-                <td class="py-3 text-muted-foreground max-w-[200px] truncate">{call.summary || '—'}</td>
+                <For each={row.getVisibleCells()}>
+                  {(cell) => (
+                    <td class="py-3 pr-4 last:pr-0">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  )}
+                </For>
               </tr>
             )}
           </For>
