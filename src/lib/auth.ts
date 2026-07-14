@@ -1,6 +1,7 @@
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from '@better-auth/drizzle-adapter'
 import { tanstackStartCookies } from 'better-auth/tanstack-start/solid'
+import { eq } from 'drizzle-orm'
 import { Resend } from 'resend'
 import { env } from '../env'
 import { db } from '../db'
@@ -31,6 +32,18 @@ export const auth = betterAuth({
     provider: 'pg',
     schema,
   }),
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          const rows = await db.select().from(schema.user).limit(2)
+          if (rows.length === 1) {
+            await db.update(schema.user).set({ role: 'admin' }).where(eq(schema.user.id, user.id))
+          }
+        },
+      },
+    },
+  },
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({ user, token }) => {

@@ -55,14 +55,7 @@ function Settings() {
 
   return (
     <div class="min-h-screen">
-      <AppNav>
-        <a
-          href="/dashboard"
-          class="text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Dashboard
-        </a>
-      </AppNav>
+      <AppNav />
 
       <main class="max-w-lg mx-auto px-4 py-8">
         <h1 class="text-2xl font-heading font-bold mb-6">Settings</h1>

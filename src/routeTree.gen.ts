@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
+import { Route as UsersRouteImport } from './routes/users'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -17,6 +18,9 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OnboardingOrganizationRouteImport } from './routes/onboarding/organization'
+import { Route as ApiUsersRouteImport } from './routes/api/users'
+import { Route as ApiOrganizationsRouteImport } from './routes/api/organizations'
 import { Route as ApiVapiStatsRouteImport } from './routes/api/vapi/stats'
 import { Route as ApiVapiCallsRouteImport } from './routes/api/vapi/calls'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -24,6 +28,11 @@ import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
   path: '/verify-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsersRoute = UsersRouteImport.update({
+  id: '/users',
+  path: '/users',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignUpRoute = SignUpRouteImport.update({
@@ -61,6 +70,21 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OnboardingOrganizationRoute = OnboardingOrganizationRouteImport.update({
+  id: '/onboarding/organization',
+  path: '/onboarding/organization',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiUsersRoute = ApiUsersRouteImport.update({
+  id: '/api/users',
+  path: '/api/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiOrganizationsRoute = ApiOrganizationsRouteImport.update({
+  id: '/api/organizations',
+  path: '/api/organizations',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiVapiStatsRoute = ApiVapiStatsRouteImport.update({
   id: '/api/vapi/stats',
   path: '/api/vapi/stats',
@@ -85,7 +109,11 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/users': typeof UsersRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/api/organizations': typeof ApiOrganizationsRoute
+  '/api/users': typeof ApiUsersRoute
+  '/onboarding/organization': typeof OnboardingOrganizationRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/vapi/calls': typeof ApiVapiCallsRoute
   '/api/vapi/stats': typeof ApiVapiStatsRoute
@@ -98,7 +126,11 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/users': typeof UsersRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/api/organizations': typeof ApiOrganizationsRoute
+  '/api/users': typeof ApiUsersRoute
+  '/onboarding/organization': typeof OnboardingOrganizationRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/vapi/calls': typeof ApiVapiCallsRoute
   '/api/vapi/stats': typeof ApiVapiStatsRoute
@@ -112,7 +144,11 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/users': typeof UsersRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/api/organizations': typeof ApiOrganizationsRoute
+  '/api/users': typeof ApiUsersRoute
+  '/onboarding/organization': typeof OnboardingOrganizationRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/vapi/calls': typeof ApiVapiCallsRoute
   '/api/vapi/stats': typeof ApiVapiStatsRoute
@@ -127,7 +163,11 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sign-in'
     | '/sign-up'
+    | '/users'
     | '/verify-email'
+    | '/api/organizations'
+    | '/api/users'
+    | '/onboarding/organization'
     | '/api/auth/$'
     | '/api/vapi/calls'
     | '/api/vapi/stats'
@@ -140,7 +180,11 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sign-in'
     | '/sign-up'
+    | '/users'
     | '/verify-email'
+    | '/api/organizations'
+    | '/api/users'
+    | '/onboarding/organization'
     | '/api/auth/$'
     | '/api/vapi/calls'
     | '/api/vapi/stats'
@@ -153,7 +197,11 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sign-in'
     | '/sign-up'
+    | '/users'
     | '/verify-email'
+    | '/api/organizations'
+    | '/api/users'
+    | '/onboarding/organization'
     | '/api/auth/$'
     | '/api/vapi/calls'
     | '/api/vapi/stats'
@@ -167,7 +215,11 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
+  UsersRoute: typeof UsersRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
+  ApiOrganizationsRoute: typeof ApiOrganizationsRoute
+  ApiUsersRoute: typeof ApiUsersRoute
+  OnboardingOrganizationRoute: typeof OnboardingOrganizationRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiVapiCallsRoute: typeof ApiVapiCallsRoute
   ApiVapiStatsRoute: typeof ApiVapiStatsRoute
@@ -180,6 +232,13 @@ declare module '@tanstack/solid-router' {
       path: '/verify-email'
       fullPath: '/verify-email'
       preLoaderRoute: typeof VerifyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sign-up': {
@@ -231,6 +290,27 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/onboarding/organization': {
+      id: '/onboarding/organization'
+      path: '/onboarding/organization'
+      fullPath: '/onboarding/organization'
+      preLoaderRoute: typeof OnboardingOrganizationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/users': {
+      id: '/api/users'
+      path: '/api/users'
+      fullPath: '/api/users'
+      preLoaderRoute: typeof ApiUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/organizations': {
+      id: '/api/organizations'
+      path: '/api/organizations'
+      fullPath: '/api/organizations'
+      preLoaderRoute: typeof ApiOrganizationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/vapi/stats': {
       id: '/api/vapi/stats'
       path: '/api/vapi/stats'
@@ -263,7 +343,11 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
+  UsersRoute: UsersRoute,
   VerifyEmailRoute: VerifyEmailRoute,
+  ApiOrganizationsRoute: ApiOrganizationsRoute,
+  ApiUsersRoute: ApiUsersRoute,
+  OnboardingOrganizationRoute: OnboardingOrganizationRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiVapiCallsRoute: ApiVapiCallsRoute,
   ApiVapiStatsRoute: ApiVapiStatsRoute,

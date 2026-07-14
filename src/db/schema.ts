@@ -6,8 +6,38 @@ export const user = pgTable('user', {
   email: text('email').notNull().unique(),
   emailVerified: boolean('email_verified').notNull(),
   image: text('image'),
+  role: text('role').notNull().default('user'),
   createdAt: timestamp('created_at').notNull(),
   updatedAt: timestamp('updated_at').notNull(),
+})
+
+export const organization = pgTable('organization', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+})
+
+export const orgMember = pgTable('org_member', {
+  id: text('id').primaryKey(),
+  orgId: text('org_id')
+    .notNull()
+    .references(() => organization.id),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id),
+  role: text('role').notNull().default('member'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+})
+
+export const orgAssistant = pgTable('org_assistant', {
+  id: text('id').primaryKey(),
+  orgId: text('org_id')
+    .notNull()
+    .references(() => organization.id),
+  assistantId: text('assistant_id').notNull(),
+  assistantName: text('assistant_name').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
 })
 
 export const session = pgTable('session', {

@@ -3,6 +3,7 @@ import { For, createSignal, createResource, Show, Suspense, onMount } from 'soli
 import { createSolidTable, getCoreRowModel, createColumnHelper, flexRender } from '@tanstack/solid-table'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { AppNav } from '../components/ui/app-nav'
+import { getSelectedOrgId } from '../lib/org-store'
 
 export const Route = createFileRoute('/dashboard')({ component: Dashboard })
 
@@ -70,36 +71,47 @@ function Dashboard() {
 
   const [stats] = createResource<VapiStats, boolean>(
     shouldFetch,
-    (_) =>
-      fetchVapi('/api/vapi/stats')
+    (_) => {
+      const orgId = getSelectedOrgId()()
+      const params = orgId ? `?orgId=${encodeURIComponent(orgId)}` : ''
+      return fetchVapi(`/api/vapi/stats${params}`)
         .then((res) => {
           if (res.status === 500) {
             setVapiKeyOk(false)
             throw new Error('Vapi not configured')
           }
           return res.json()
-        }),
+        })
+    },
   )
 
   const [callLogs] = createResource<CallLogEntry[], boolean>(
     shouldFetch,
-    (_) =>
-      fetchVapi('/api/vapi/calls')
-        .then((res) => res.json()),
+    (_) => {
+      const orgId = getSelectedOrgId()()
+      const params = orgId ? `?orgId=${encodeURIComponent(orgId)}` : ''
+      return fetchVapi(`/api/vapi/calls${params}`)
+        .then((res) => res.json())
+    },
   )
 
-  onMount(() => triggerFetch(true))
+  onMount(async () => {
+    try {
+      const res = await fetch('/api/organizations')
+      if (res.ok) {
+        const body = await res.json()
+        if (body.orgs?.length === 0) {
+          window.location.href = '/onboarding/organization'
+          return
+        }
+      }
+    } catch {}
+    triggerFetch(true)
+  })
 
   return (
     <div class="min-h-screen">
-      <AppNav>
-        <a
-          href="/settings"
-          class="text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Settings
-        </a>
-      </AppNav>
+      <AppNav />
 
       <CatchBoundary getResetKey={() => 0} errorComponent={(p) => <SectionError {...p} label="Dashboard" />}>
       <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
