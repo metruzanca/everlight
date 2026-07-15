@@ -1,4 +1,4 @@
-import { For, createSignal, createResource, Show, onMount } from 'solid-js'
+import { For, createSignal, createResource, createEffect, Show, onMount } from 'solid-js'
 import { getSelectedOrgId, setSelectedOrg } from '../../lib/org-store'
 
 type OrgEntry = { id: string; name: string }
@@ -22,14 +22,27 @@ export function OrgSwitcher() {
       }),
   )
 
-  onMount(() => triggerFetch(true))
+  onMount(() => {
+    triggerFetch(true)
+  })
 
   const orgs = () => data()?.orgs ?? []
   const isAdmin = () => data()?.currentUserRole === 'admin'
   const selected = () => getSelectedOrgId()()
+
+  createEffect(() => {
+    const list = orgs()
+    const current = selected()
+    if (!current && list.length > 0) {
+      setSelectedOrg(isAdmin() ? 'all' : list[0].id)
+    }
+  })
+
   const selectedName = () => {
-    if (selected() === 'all') return 'All Organizations'
-    return orgs().find((o) => o.id === selected())?.name ?? orgs()[0]?.name ?? 'Select Org'
+    const s = selected()
+    if (s === 'all') return 'All Organizations'
+    const list = orgs()
+    return list.find((o) => o.id === s)?.name ?? list[0]?.name ?? 'Org'
   }
 
   const handleSelect = (id: string | null) => {

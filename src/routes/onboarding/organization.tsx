@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/solid-router'
 import { createSignal, Show } from 'solid-js'
 import { authClient } from '../../lib/auth-client'
+import { setSelectedOrg } from '../../lib/org-store'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
@@ -14,6 +15,7 @@ function OnboardingOrganization() {
   const session = authClient.useSession()
   const navigate = useNavigate()
   const [name, setName] = createSignal('')
+  const [domainAutoJoin, setDomainAutoJoin] = createSignal(false)
   const [error, setError] = createSignal('')
   const [loading, setLoading] = createSignal(false)
 
@@ -26,7 +28,7 @@ function OnboardingOrganization() {
       const res = await fetch('/api/organizations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name() }),
+        body: JSON.stringify({ name: name(), domainAutoJoin: domainAutoJoin() }),
       })
 
       if (!res.ok) {
@@ -35,6 +37,8 @@ function OnboardingOrganization() {
         return
       }
 
+      const body = await res.json()
+      setSelectedOrg(body.organization.id)
       navigate({ to: '/dashboard' })
     } catch {
       setError('Failed to create organization')
@@ -86,6 +90,21 @@ function OnboardingOrganization() {
                     required
                   />
                 </div>
+
+                <label class="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={domainAutoJoin()}
+                    onChange={(e) => setDomainAutoJoin((e.target as HTMLInputElement).checked)}
+                    class="mt-1"
+                  />
+                  <div>
+                    <p class="text-sm font-medium">Auto-invite by domain</p>
+                    <p class="text-xs text-muted-foreground">
+                      Automatically invite new users with the same email domain.
+                    </p>
+                  </div>
+                </label>
               </CardContent>
 
               <CardFooter>

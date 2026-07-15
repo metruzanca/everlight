@@ -15,14 +15,19 @@ import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as InviteRouteImport } from './routes/invite'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OnboardingOrganizationRouteImport } from './routes/onboarding/organization'
 import { Route as ApiUsersRouteImport } from './routes/api/users'
 import { Route as ApiOrganizationsRouteImport } from './routes/api/organizations'
+import { Route as ApiOrgMembersRouteImport } from './routes/api/org-members'
+import { Route as ApiInvitesRouteImport } from './routes/api/invites'
 import { Route as ApiVapiStatsRouteImport } from './routes/api/vapi/stats'
 import { Route as ApiVapiCallsRouteImport } from './routes/api/vapi/calls'
+import { Route as ApiInvitesDeclineRouteImport } from './routes/api/invites/decline'
+import { Route as ApiInvitesAcceptRouteImport } from './routes/api/invites/accept'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
@@ -55,6 +60,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InviteRoute = InviteRouteImport.update({
+  id: '/invite',
+  path: '/invite',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
@@ -85,6 +95,16 @@ const ApiOrganizationsRoute = ApiOrganizationsRouteImport.update({
   path: '/api/organizations',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiOrgMembersRoute = ApiOrgMembersRouteImport.update({
+  id: '/api/org-members',
+  path: '/api/org-members',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiInvitesRoute = ApiInvitesRouteImport.update({
+  id: '/api/invites',
+  path: '/api/invites',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiVapiStatsRoute = ApiVapiStatsRouteImport.update({
   id: '/api/vapi/stats',
   path: '/api/vapi/stats',
@@ -94,6 +114,16 @@ const ApiVapiCallsRoute = ApiVapiCallsRouteImport.update({
   id: '/api/vapi/calls',
   path: '/api/vapi/calls',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ApiInvitesDeclineRoute = ApiInvitesDeclineRouteImport.update({
+  id: '/decline',
+  path: '/decline',
+  getParentRoute: () => ApiInvitesRoute,
+} as any)
+const ApiInvitesAcceptRoute = ApiInvitesAcceptRouteImport.update({
+  id: '/accept',
+  path: '/accept',
+  getParentRoute: () => ApiInvitesRoute,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
@@ -105,16 +135,21 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/invite': typeof InviteRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/users': typeof UsersRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/api/invites': typeof ApiInvitesRouteWithChildren
+  '/api/org-members': typeof ApiOrgMembersRoute
   '/api/organizations': typeof ApiOrganizationsRoute
   '/api/users': typeof ApiUsersRoute
   '/onboarding/organization': typeof OnboardingOrganizationRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/invites/accept': typeof ApiInvitesAcceptRoute
+  '/api/invites/decline': typeof ApiInvitesDeclineRoute
   '/api/vapi/calls': typeof ApiVapiCallsRoute
   '/api/vapi/stats': typeof ApiVapiStatsRoute
 }
@@ -122,16 +157,21 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/invite': typeof InviteRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/users': typeof UsersRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/api/invites': typeof ApiInvitesRouteWithChildren
+  '/api/org-members': typeof ApiOrgMembersRoute
   '/api/organizations': typeof ApiOrganizationsRoute
   '/api/users': typeof ApiUsersRoute
   '/onboarding/organization': typeof OnboardingOrganizationRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/invites/accept': typeof ApiInvitesAcceptRoute
+  '/api/invites/decline': typeof ApiInvitesDeclineRoute
   '/api/vapi/calls': typeof ApiVapiCallsRoute
   '/api/vapi/stats': typeof ApiVapiStatsRoute
 }
@@ -140,16 +180,21 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/invite': typeof InviteRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/users': typeof UsersRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/api/invites': typeof ApiInvitesRouteWithChildren
+  '/api/org-members': typeof ApiOrgMembersRoute
   '/api/organizations': typeof ApiOrganizationsRoute
   '/api/users': typeof ApiUsersRoute
   '/onboarding/organization': typeof OnboardingOrganizationRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/invites/accept': typeof ApiInvitesAcceptRoute
+  '/api/invites/decline': typeof ApiInvitesDeclineRoute
   '/api/vapi/calls': typeof ApiVapiCallsRoute
   '/api/vapi/stats': typeof ApiVapiStatsRoute
 }
@@ -159,16 +204,21 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/forgot-password'
+    | '/invite'
     | '/reset-password'
     | '/settings'
     | '/sign-in'
     | '/sign-up'
     | '/users'
     | '/verify-email'
+    | '/api/invites'
+    | '/api/org-members'
     | '/api/organizations'
     | '/api/users'
     | '/onboarding/organization'
     | '/api/auth/$'
+    | '/api/invites/accept'
+    | '/api/invites/decline'
     | '/api/vapi/calls'
     | '/api/vapi/stats'
   fileRoutesByTo: FileRoutesByTo
@@ -176,16 +226,21 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/forgot-password'
+    | '/invite'
     | '/reset-password'
     | '/settings'
     | '/sign-in'
     | '/sign-up'
     | '/users'
     | '/verify-email'
+    | '/api/invites'
+    | '/api/org-members'
     | '/api/organizations'
     | '/api/users'
     | '/onboarding/organization'
     | '/api/auth/$'
+    | '/api/invites/accept'
+    | '/api/invites/decline'
     | '/api/vapi/calls'
     | '/api/vapi/stats'
   id:
@@ -193,16 +248,21 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/forgot-password'
+    | '/invite'
     | '/reset-password'
     | '/settings'
     | '/sign-in'
     | '/sign-up'
     | '/users'
     | '/verify-email'
+    | '/api/invites'
+    | '/api/org-members'
     | '/api/organizations'
     | '/api/users'
     | '/onboarding/organization'
     | '/api/auth/$'
+    | '/api/invites/accept'
+    | '/api/invites/decline'
     | '/api/vapi/calls'
     | '/api/vapi/stats'
   fileRoutesById: FileRoutesById
@@ -211,12 +271,15 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  InviteRoute: typeof InviteRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
   UsersRoute: typeof UsersRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
+  ApiInvitesRoute: typeof ApiInvitesRouteWithChildren
+  ApiOrgMembersRoute: typeof ApiOrgMembersRoute
   ApiOrganizationsRoute: typeof ApiOrganizationsRoute
   ApiUsersRoute: typeof ApiUsersRoute
   OnboardingOrganizationRoute: typeof OnboardingOrganizationRoute
@@ -269,6 +332,13 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/invite': {
+      id: '/invite'
+      path: '/invite'
+      fullPath: '/invite'
+      preLoaderRoute: typeof InviteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/forgot-password': {
       id: '/forgot-password'
       path: '/forgot-password'
@@ -311,6 +381,20 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof ApiOrganizationsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/org-members': {
+      id: '/api/org-members'
+      path: '/api/org-members'
+      fullPath: '/api/org-members'
+      preLoaderRoute: typeof ApiOrgMembersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/invites': {
+      id: '/api/invites'
+      path: '/api/invites'
+      fullPath: '/api/invites'
+      preLoaderRoute: typeof ApiInvitesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/vapi/stats': {
       id: '/api/vapi/stats'
       path: '/api/vapi/stats'
@@ -325,6 +409,20 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof ApiVapiCallsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/invites/decline': {
+      id: '/api/invites/decline'
+      path: '/decline'
+      fullPath: '/api/invites/decline'
+      preLoaderRoute: typeof ApiInvitesDeclineRouteImport
+      parentRoute: typeof ApiInvitesRoute
+    }
+    '/api/invites/accept': {
+      id: '/api/invites/accept'
+      path: '/accept'
+      fullPath: '/api/invites/accept'
+      preLoaderRoute: typeof ApiInvitesAcceptRouteImport
+      parentRoute: typeof ApiInvitesRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -335,16 +433,33 @@ declare module '@tanstack/solid-router' {
   }
 }
 
+interface ApiInvitesRouteChildren {
+  ApiInvitesAcceptRoute: typeof ApiInvitesAcceptRoute
+  ApiInvitesDeclineRoute: typeof ApiInvitesDeclineRoute
+}
+
+const ApiInvitesRouteChildren: ApiInvitesRouteChildren = {
+  ApiInvitesAcceptRoute: ApiInvitesAcceptRoute,
+  ApiInvitesDeclineRoute: ApiInvitesDeclineRoute,
+}
+
+const ApiInvitesRouteWithChildren = ApiInvitesRoute._addFileChildren(
+  ApiInvitesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  InviteRoute: InviteRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
   UsersRoute: UsersRoute,
   VerifyEmailRoute: VerifyEmailRoute,
+  ApiInvitesRoute: ApiInvitesRouteWithChildren,
+  ApiOrgMembersRoute: ApiOrgMembersRoute,
   ApiOrganizationsRoute: ApiOrganizationsRoute,
   ApiUsersRoute: ApiUsersRoute,
   OnboardingOrganizationRoute: OnboardingOrganizationRoute,

@@ -15,6 +15,13 @@
       "when": 1783995856715,
       "tag": "0001_heavy_doctor_faustus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784081055557,
+      "tag": "0002_freezing_ego",
+      "breakpoints": true
     }
   ]
 }

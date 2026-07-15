@@ -1,19 +1,20 @@
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from '@better-auth/drizzle-adapter'
 import { tanstackStartCookies } from 'better-auth/tanstack-start/solid'
-import { eq } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import { Resend } from 'resend'
 import { env } from '../env'
 import { db } from '../db'
 import * as schema from '../db/schema'
+import { BLOCKED_DOMAINS } from './blocked-domains'
 
 const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null
 
-const baseUrl = env.RAILWAY_PUBLIC_DOMAIN
+export const baseUrl = env.RAILWAY_PUBLIC_DOMAIN
   ? `https://${env.RAILWAY_PUBLIC_DOMAIN}`
   : env.BETTER_AUTH_URL ?? `http://localhost:${env.PORT}`
 
-async function sendEmail(to: string, subject: string, html: string, devLog: string) {
+export async function sendEmail(to: string, subject: string, html: string, devLog: string) {
   if (resend) {
     await resend.emails.send({
       from: env.RESEND_FROM_EMAIL,
@@ -39,6 +40,44 @@ export const auth = betterAuth({
           const rows = await db.select().from(schema.user).limit(2)
           if (rows.length === 1) {
             await db.update(schema.user).set({ role: 'admin' }).where(eq(schema.user.id, user.id))
+          }
+
+          const userDomain = user.email.split('@')[1]?.toLowerCase()
+          if (!userDomain || BLOCKED_DOMAINS.has(userDomain)) return
+
+          const orgs = await db
+            .select()
+            .from(schema.organization)
+            .where(
+              and(
+                eq(schema.organization.domainAutoJoin, true),
+                eq(schema.organization.domain, userDomain),
+              ),
+            )
+
+          for (const org of orgs) {
+            const token = crypto.randomUUID()
+            const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
+
+            await db.insert(schema.orgInvitation).values({
+              id: crypto.randomUUID(),
+              orgId: org.id,
+              email: user.email,
+              role: 'member',
+              token,
+              status: 'pending',
+              expiresAt,
+              invitedBy: user.id,
+              createdAt: new Date(),
+            })
+
+            const inviteUrl = `${baseUrl}/invite?token=${token}`
+            await sendEmail(
+              user.email,
+              `You've been invited to join ${org.name}`,
+              `<p>You've been auto-invited to join <strong>${org.name}</strong> on Everlight.</p><p><a href="${inviteUrl}">Accept invitation</a></p>`,
+              `Auto-invite for ${user.email} to ${org.name}: ${inviteUrl}`,
+            )
           }
         },
       },

@@ -14,6 +14,9 @@ export const user = pgTable('user', {
 export const organization = pgTable('organization', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
+  ownerId: text('owner_id').references(() => user.id),
+  domain: text('domain'),
+  domainAutoJoin: boolean('domain_auto_join').notNull().default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
@@ -37,6 +40,22 @@ export const orgAssistant = pgTable('org_assistant', {
     .references(() => organization.id),
   assistantId: text('assistant_id').notNull(),
   assistantName: text('assistant_name').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+})
+
+export const orgInvitation = pgTable('org_invitation', {
+  id: text('id').primaryKey(),
+  orgId: text('org_id')
+    .notNull()
+    .references(() => organization.id),
+  email: text('email').notNull(),
+  role: text('role').notNull().default('member'),
+  token: text('token').notNull().unique(),
+  status: text('status').notNull().default('pending'),
+  expiresAt: timestamp('expires_at').notNull(),
+  invitedBy: text('invited_by')
+    .notNull()
+    .references(() => user.id),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 })
 
