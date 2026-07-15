@@ -22,6 +22,7 @@ import { Show, Suspense, createSignal, type Component } from 'solid-js'
 
 import styleCss from '../styles.css?url'
 import { authClient } from '../lib/auth-client'
+import { UserProvider } from '../lib/user-provider'
 
 export const Route = createRootRouteWithContext()({
   head: () => ({
@@ -48,7 +49,9 @@ function RootComponent() {
       <body>
         <Suspense>
           <VerifyBanner />
-          <Outlet />
+          <UserProvider>
+            <Outlet />
+          </UserProvider>
           <TanStackRouterDevtools />
         </Suspense>
         <Scripts />

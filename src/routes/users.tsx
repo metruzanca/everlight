@@ -1,8 +1,8 @@
-import { createFileRoute } from '@tanstack/solid-router'
-import { For, createSignal, createResource, createMemo, Show, Suspense, onMount } from 'solid-js'
+import { createFileRoute, CatchBoundary } from '@tanstack/solid-router'
+import { For, createSignal, Show } from 'solid-js'
 import { createSolidTable, getCoreRowModel, createColumnHelper, flexRender } from '@tanstack/solid-table'
+import { useUserContext } from '../lib/user-provider'
 import { authClient } from '../lib/auth-client'
-import { getSelectedOrgId } from '../lib/org-store'
 import { AppNav } from '../components/ui/app-nav'
 import { Card, CardContent } from '../components/ui/card'
 import { Button } from '../components/ui/button'
@@ -22,30 +22,6 @@ type UserEntry = {
   updatedAt: string
 }
 
-type OrgInfo = { id: string; name: string }
-
-type UsersResponse = {
-  users: UserEntry[]
-  userOrgs: Record<string, OrgInfo[]>
-  currentUserRole: string
-  firstUserId: string | null
-}
-
-type OrgMemberEntry = {
-  id: string
-  userId: string
-  role: string
-  createdAt: string
-  userName: string
-  userEmail: string
-}
-
-type OrgMembersResponse = {
-  members: OrgMemberEntry[]
-  ownerId: string | null
-  domainAutoJoin: boolean
-}
-
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', {
     month: 'short',
@@ -55,121 +31,11 @@ function formatDate(iso: string): string {
 }
 
 function Users() {
-  return (
-    <div class="min-h-screen">
-      <AppNav />
-      <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-        <Suspense fallback={<p class="text-sm text-muted-foreground">Loading...</p>}>
-          <UsersContent />
-        </Suspense>
-      </main>
-    </div>
-  )
-}
-
-function UsersContent() {
-  const [shouldFetch, triggerFetch] = createSignal(false)
-  const [deleting, setDeleting] = createSignal<string | null>(null)
-  const [showInvite, setShowInvite] = createSignal(false)
-  const [removing, setRemoving] = createSignal<string | null>(null)
+  const ctx = useUserContext()
   const session = authClient.useSession()
-
-  const [data] = createResource<UsersResponse, boolean>(
-    shouldFetch,
-    (_) =>
-      fetch('/api/users').then((res) => {
-        if (res.status === 401) { window.location.href = '/sign-in'; throw new Error('Unauthorized') }
-        return res.json()
-      }),
-  )
-
-  const users = () => data()?.users ?? []
-  const userOrgsData = () => data()?.userOrgs ?? {}
-  const isAdmin = () => data()?.currentUserRole === 'admin'
-  const firstUserId = () => data()?.firstUserId ?? null
-
-  const selectedOrgId = createMemo(() => {
-    const id = getSelectedOrgId()()
-    if (!id || id === 'all') return null
-    return id
-  })
-
-  const [orgMembers, { refetch: refetchMembers }] = createResource<OrgMembersResponse | null, string | null>(
-    selectedOrgId,
-    async (orgId) => {
-      if (!orgId) return null
-      const res = await fetch(`/api/org-members?orgId=${encodeURIComponent(orgId)}`)
-      if (!res.ok) throw new Error('Failed to fetch members')
-      return res.json()
-    },
-  )
-
-  const isOwner = createMemo(() => {
-    const m = orgMembers()!
-    const uid = session().data?.user?.id
-    return m?.ownerId != null && uid != null && m.ownerId === uid
-  })
-
-  const canManage = createMemo(() => isAdmin() || isOwner())
-
-  async function handleRemove(userId: string) {
-    const oid = selectedOrgId()
-    if (!oid || !confirm('Remove this member from the organization?')) return
-    setRemoving(userId)
-    try {
-      const res = await fetch('/api/org-members', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orgId: oid, userId }),
-      })
-      if (!res.ok) {
-        const body = await res.json()
-        alert(body.error || 'Failed to remove member')
-        return
-      }
-      refetchMembers()
-    } finally {
-      setRemoving(null)
-    }
-  }
-
-  async function handleLeave() {
-    const oid = selectedOrgId()
-    if (!oid) return
-    const uid = session().data?.user?.id
-    if (!uid) return
-    if (!confirm('Leave this organization?')) return
-    const res = await fetch('/api/org-members', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orgId: oid, userId: uid }),
-    })
-    if (!res.ok) {
-      const body = await res.json()
-      alert(body.error || 'Failed to leave')
-      return
-    }
-    refetchMembers()
-  }
-
-  async function handleToggleAutoJoin() {
-    const oid = selectedOrgId()
-    const current = orgMembers()?.domainAutoJoin
-    if (!oid || current === undefined) return
-    try {
-      const res = await fetch('/api/organizations', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: oid, domainAutoJoin: !current }),
-      })
-      if (!res.ok) {
-        const body = await res.json()
-        alert(body.error || 'Failed to update setting')
-        return
-      }
-      refetchMembers()
-    } catch {}
-  }
+  const [deleting, setDeleting] = createSignal<string | null>(null)
+  const [removing, setRemoving] = createSignal<string | null>(null)
+  const [showInvite, setShowInvite] = createSignal(false)
 
   const handleDelete = async (userId: string) => {
     if (!confirm('Delete this user? This cannot be undone.')) return
@@ -186,13 +52,69 @@ function UsersContent() {
         alert(body.error || 'Failed to delete user')
         return
       }
-      triggerFetch((p) => !p)
+      ctx.refetchUsers()
     } finally {
       setDeleting(null)
     }
   }
 
-  onMount(() => triggerFetch(true))
+  async function handleRemove(userId: string) {
+    const oid = ctx.selectedOrgId()
+    if (!oid || !confirm('Remove this member from the organization?')) return
+    setRemoving(userId)
+    try {
+      const res = await fetch('/api/org-members', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orgId: oid, userId }),
+      })
+      if (!res.ok) {
+        const body = await res.json()
+        alert(body.error || 'Failed to remove member')
+        return
+      }
+      ctx.refetchMembers()
+    } finally {
+      setRemoving(null)
+    }
+  }
+
+  async function handleLeave() {
+    const oid = ctx.selectedOrgId()
+    const uid = session().data?.user?.id
+    if (!oid || !uid) return
+    if (!confirm('Leave this organization?')) return
+    const res = await fetch('/api/org-members', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orgId: oid, userId: uid }),
+    })
+    if (!res.ok) {
+      const body = await res.json()
+      alert(body.error || 'Failed to leave')
+      return
+    }
+    ctx.refetchMembers()
+  }
+
+  async function handleToggleAutoJoin() {
+    const oid = ctx.selectedOrgId()
+    const current = ctx.domainAutoJoin()
+    if (!oid) return
+    try {
+      const res = await fetch('/api/organizations', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: oid, domainAutoJoin: !current }),
+      })
+      if (!res.ok) {
+        const body = await res.json()
+        alert(body.error || 'Failed to update setting')
+        return
+      }
+      ctx.refetchMembers()
+    } catch {}
+  }
 
   const columnHelper = createColumnHelper<UserEntry>()
 
@@ -220,7 +142,7 @@ function UsersContent() {
       id: 'organizations',
       header: 'Organization',
       cell: (info) => {
-        const orgs = userOrgsData()[info.row.original.id]
+        const orgs = ctx.userOrgsData()[info.row.original.id]
         if (!orgs || orgs.length === 0) return <span class="text-muted-foreground">—</span>
         return (
           <div class="flex flex-wrap gap-1">
@@ -269,7 +191,7 @@ function UsersContent() {
             Copy ID
           </DropdownMenuItem>
           <DropdownMenuItem
-            hidden={info.row.original.id === firstUserId()}
+            hidden={info.row.original.id === ctx.firstUserId()}
             disabled={deleting() === info.row.original.id}
             destructive
             onClick={() => handleDelete(info.row.original.id)}
@@ -282,194 +204,176 @@ function UsersContent() {
   ]
 
   const table = () => {
-    const u = users()
+    const u = ctx.users()
     deleting()
     if (u.length === 0) return null
     return createSolidTable({
       get data() { return u },
-      get columns() { return isAdmin() ? columns : columns.slice(0, -1) },
+      get columns() { return ctx.isAdmin() ? columns : columns.slice(0, -1) },
       getCoreRowModel: getCoreRowModel(),
     })
   }
 
-  return (
-    <div class="space-y-8">
-        <h1 class="text-2xl font-heading font-bold">Users</h1>
-          <Show when={data.error}>
-            <Card class="border-destructive/30 bg-destructive/5 mb-6">
-              <CardContent class="pt-6">
-                <p class="text-destructive font-medium text-sm">Failed to load users</p>
-                <p class="text-xs text-muted-foreground mt-1">{(data.error as Error).message}</p>
-              </CardContent>
-            </Card>
-          </Show>
+  function MembersSection() {
+    const ctx2 = useUserContext()
+    return (
+      <section>
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 class="text-lg font-heading font-semibold">Members</h2>
+            <p class="text-sm text-muted-foreground">
+              {ctx2.members().length} {ctx2.members().length === 1 ? 'member' : 'members'}
+            </p>
+          </div>
+          <div class="flex items-center gap-3">
+            <Show when={ctx2.canManage()}>
+              <Button onClick={() => setShowInvite(true)} size="sm">Invite</Button>
+            </Show>
+            <Show when={session().data?.user?.id && !ctx2.isOwner() && !ctx2.isAdmin()}>
+              <Button onClick={handleLeave} variant="outline" size="sm">Leave</Button>
+            </Show>
+          </div>
+        </div>
 
-          <Show when={table()}>
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <For each={table()!.getHeaderGroups()}>
-                    {(headerGroup) => (
-                      <tr class="border-b border-border text-left text-muted-foreground">
-                        <For each={headerGroup.headers}>
-                          {(header) => (
-                            <th class="pb-3 pr-4 last:pr-0 font-medium">
-                              {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                            </th>
-                          )}
-                        </For>
-                      </tr>
-                    )}
-                  </For>
-                </thead>
-                <tbody>
-                  <For each={table()!.getRowModel().rows}>
-                    {(row) => (
-                      <tr class="border-b border-border/60 hover:bg-muted/30 transition-colors">
-                        <For each={row.getVisibleCells()}>
-                          {(cell) => (
-                            <td class="py-3 pr-4 last:pr-0">
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </td>
-                          )}
-                        </For>
-                      </tr>
-                    )}
-                  </For>
-                </tbody>
-              </table>
+        <Show when={ctx2.canManage()}>
+          <div class="flex items-center gap-3 mb-4 p-3 rounded-lg border border-border bg-card">
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                class="sr-only peer"
+                checked={ctx2.domainAutoJoin()}
+                onChange={handleToggleAutoJoin}
+              />
+              <div class="w-9 h-5 bg-muted rounded-full peer peer-checked:bg-primary peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-background after:rounded-full after:h-4 after:w-4 after:transition-all" />
+            </label>
+            <div>
+              <p class="text-sm font-medium">Auto-invite by domain</p>
+              <p class="text-xs text-muted-foreground">Automatically invite new users with the same email domain as your org.</p>
             </div>
-          </Show>
-
-        <Show when={selectedOrgId()}>
-          <Suspense fallback={<p class="text-sm text-muted-foreground">Loading members...</p>}>
-              <Show when={orgMembers()}>
-                {(m) => {
-                  const members = m().members
-                  return (
-                    <section>
-                      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-                        <div>
-                          <h2 class="text-lg font-heading font-semibold">Members</h2>
-                          <p class="text-sm text-muted-foreground">
-                            {members.length} {members.length === 1 ? 'member' : 'members'}
-                          </p>
-                        </div>
-                        <div class="flex items-center gap-3">
-                          <Show when={canManage()}>
-                            <Button onClick={() => setShowInvite(true)} size="sm">
-                              Invite
-                            </Button>
-                          </Show>
-                          <Show when={session().data?.user?.id && !isOwner() && !isAdmin()}>
-                            <Button onClick={handleLeave} variant="outline" size="sm">
-                              Leave
-                            </Button>
-                          </Show>
-                        </div>
-                      </div>
-
-                      <Show when={canManage()}>
-                        <div class="flex items-center gap-3 mb-4 p-3 rounded-lg border border-border bg-card">
-                          <label class="relative inline-flex items-center cursor-pointer">
-                            <input
-                              type="checkbox"
-                              class="sr-only peer"
-                              checked={m().domainAutoJoin}
-                              onChange={handleToggleAutoJoin}
-                            />
-                            <div class="w-9 h-5 bg-muted rounded-full peer peer-checked:bg-primary peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-background after:rounded-full after:h-4 after:w-4 after:transition-all" />
-                          </label>
-                          <div>
-                            <p class="text-sm font-medium">Auto-invite by domain</p>
-                            <p class="text-xs text-muted-foreground">
-                              Automatically invite new users with the same email domain as your org.
-                            </p>
-                          </div>
-                        </div>
-                      </Show>
-
-                      <Show when={members.length > 0}>
-                        <div class="overflow-x-auto rounded-2xl border border-border">
-                          <table class="w-full text-sm">
-                            <thead>
-                              <tr class="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                                <th class="px-4 py-3 font-medium">Name</th>
-                                <th class="px-4 py-3 font-medium">Email</th>
-                                <th class="px-4 py-3 font-medium">Role</th>
-                                <th class="px-4 py-3 font-medium">Joined</th>
-                                <th class="px-4 py-3 font-medium" />
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <For each={members}>
-                                {(member) => (
-                                  <tr class="border-b border-border/60 hover:bg-muted/30 transition-colors">
-                                    <td class="px-4 py-3 font-medium">{member.userName}</td>
-                                    <td class="px-4 py-3 text-muted-foreground">{member.userEmail}</td>
-                                    <td class="px-4 py-3">
-                                      <Show
-                                        when={member.userId === m().ownerId}
-                                        fallback={
-                                          <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground">
-                                            {member.role}
-                                          </span>
-                                        }
-                                      >
-                                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-accent/10 text-accent">
-                                          Owner
-                                        </span>
-                                      </Show>
-                                    </td>
-                                    <td class="px-4 py-3 text-muted-foreground whitespace-nowrap text-xs">
-                                      {formatDate(member.createdAt)}
-                                    </td>
-                                    <td class="px-4 py-3 text-right">
-                                      <Show
-                                        when={
-                                          canManage() &&
-                                          member.userId !== m().ownerId &&
-                                          member.userId !== session().data?.user?.id
-                                        }
-                                      >
-                                        <Button
-                                          onClick={() => handleRemove(member.userId)}
-                                          variant="destructive"
-                                          size="xs"
-                                          disabled={removing() === member.userId}
-                                        >
-                                          {removing() === member.userId ? '...' : 'Remove'}
-                                        </Button>
-                                      </Show>
-                                    </td>
-                                  </tr>
-                                )}
-                              </For>
-                            </tbody>
-                          </table>
-                        </div>
-                      </Show>
-
-                      <Show when={members.length === 0}>
-                        <div class="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-                          No members yet.
-                        </div>
-                      </Show>
-                    </section>
-                  )
-                }}
-              </Show>
-            </Suspense>
+          </div>
         </Show>
 
+        <Show when={ctx2.members().length > 0} fallback={
+          <div class="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+            {ctx2.membersLoading() ? 'Loading members...' : 'No members yet.'}
+          </div>
+        }>
+          <div class="overflow-x-auto rounded-2xl border border-border">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                  <th class="px-4 py-3 font-medium">Name</th>
+                  <th class="px-4 py-3 font-medium">Email</th>
+                  <th class="px-4 py-3 font-medium">Role</th>
+                  <th class="px-4 py-3 font-medium">Joined</th>
+                  <th class="px-4 py-3 font-medium" />
+                </tr>
+              </thead>
+              <tbody>
+                <For each={ctx2.members()}>
+                  {(member) => (
+                    <tr class="border-b border-border/60 hover:bg-muted/30 transition-colors">
+                      <td class="px-4 py-3 font-medium">{member.userName}</td>
+                      <td class="px-4 py-3 text-muted-foreground">{member.userEmail}</td>
+                      <td class="px-4 py-3">
+                        <Show when={member.userId === ctx2.ownerId()} fallback={
+                          <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground">{member.role}</span>
+                        }>
+                          <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-accent/10 text-accent">Owner</span>
+                        </Show>
+                      </td>
+                      <td class="px-4 py-3 text-muted-foreground whitespace-nowrap text-xs">{formatDate(member.createdAt)}</td>
+                      <td class="px-4 py-3 text-right">
+                        <Show when={ctx2.canManage() && member.userId !== ctx2.ownerId() && member.userId !== session().data?.user?.id}>
+                          <Button onClick={() => handleRemove(member.userId)} variant="destructive" size="xs" disabled={removing() === member.userId}>
+                            {removing() === member.userId ? '...' : 'Remove'}
+                          </Button>
+                        </Show>
+                      </td>
+                    </tr>
+                  )}
+                </For>
+              </tbody>
+            </table>
+          </div>
+        </Show>
+      </section>
+    )
+  }
+
+  return (
+    <div class="min-h-screen">
+      <AppNav />
+      <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+        <h1 class="text-2xl font-heading font-bold">Users</h1>
+
+        <CatchBoundary getResetKey={() => 0} errorComponent={(p) => <SectionError {...p} label="User list" />}>
+          <Show when={table()}>
+            {(t) => (
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <For each={t().getHeaderGroups()}>
+                      {(headerGroup) => (
+                        <tr class="border-b border-border text-left text-muted-foreground">
+                          <For each={headerGroup.headers}>
+                            {(header) => (
+                              <th class="pb-3 pr-4 last:pr-0 font-medium">
+                                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                              </th>
+                            )}
+                          </For>
+                        </tr>
+                      )}
+                    </For>
+                  </thead>
+                  <tbody>
+                    <For each={t().getRowModel().rows}>
+                      {(row) => (
+                        <tr class="border-b border-border/60 hover:bg-muted/30 transition-colors">
+                          <For each={row.getVisibleCells()}>
+                            {(cell) => (
+                              <td class="py-3 pr-4 last:pr-0">
+                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                              </td>
+                            )}
+                          </For>
+                        </tr>
+                      )}
+                    </For>
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Show>
+        </CatchBoundary>
+
+        <CatchBoundary getResetKey={() => 0} errorComponent={(p) => <SectionError {...p} label="Members" />}>
+          <Show when={ctx.selectedOrgId()}>
+            <MembersSection />
+          </Show>
+        </CatchBoundary>
+      </main>
+
       <InviteDialog
-        orgId={selectedOrgId()!}
+        orgId={ctx.selectedOrgId()!}
         open={showInvite()}
         onClose={() => {
           setShowInvite(false)
-          refetchMembers()
+          ctx.refetchMembers()
         }}
       />
     </div>
+  )
+}
+
+function SectionError(props: { error: Error; label?: string }) {
+  return (
+    <Card class="border-destructive/30 bg-destructive/5">
+      <CardContent class="pt-6 space-y-2">
+        <p class="text-destructive font-medium text-sm">Failed to load {props.label ?? 'section'}</p>
+        <p class="text-xs text-muted-foreground">{props.error.message}</p>
+      </CardContent>
+    </Card>
   )
 }

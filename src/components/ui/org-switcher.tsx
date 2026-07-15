@@ -1,52 +1,29 @@
-import { For, createSignal, createResource, createEffect, Show, onMount } from 'solid-js'
-import { getSelectedOrgId, setSelectedOrg } from '../../lib/org-store'
-
-type OrgEntry = { id: string; name: string }
-
-type OrgsResponse = {
-  orgs: OrgEntry[]
-  memberships: { id: string; orgId: string; userId: string; role: string }[]
-  currentUserRole: string | null
-}
+import { For, createSignal, Show } from 'solid-js'
+import { useUserContext } from '../../lib/user-provider'
 
 export function OrgSwitcher() {
-  const [shouldFetch, triggerFetch] = createSignal(false)
+  const ctx = useUserContext()
   const [open, setOpen] = createSignal(false)
 
-  const [data] = createResource<OrgsResponse, boolean>(
-    shouldFetch,
-    (_) =>
-      fetch('/api/organizations').then((r) => {
-        if (r.status === 401) window.location.href = '/sign-in'
-        return r.json()
-      }),
-  )
-
-  onMount(() => {
-    triggerFetch(true)
-  })
-
-  const orgs = () => data()?.orgs ?? []
-  const isAdmin = () => data()?.currentUserRole === 'admin'
-  const selected = () => getSelectedOrgId()()
-
-  createEffect(() => {
-    const list = orgs()
-    const current = selected()
-    if (!current && list.length > 0) {
-      setSelectedOrg(isAdmin() ? 'all' : list[0].id)
-    }
-  })
+  const orgs = () => ctx.orgs()
+  const isAdmin = () => ctx.isAdmin()
 
   const selectedName = () => {
-    const s = selected()
+    const s = getSelectedRaw()
     if (s === 'all') return 'All Organizations'
+    return orgs().find((o) => o.id === s)?.name ?? 'Org'
+  }
+
+  function getSelectedRaw() {
+    const stored = ctx.selectedOrgId()
+    if (stored) return stored
     const list = orgs()
-    return list.find((o) => o.id === s)?.name ?? list[0]?.name ?? 'Org'
+    if (list.length > 0) return isAdmin() ? 'all' : list[0].id
+    return null
   }
 
   const handleSelect = (id: string | null) => {
-    setSelectedOrg(id)
+    ctx.setSelectedOrgId(id)
     setOpen(false)
     window.location.reload()
   }
@@ -69,7 +46,7 @@ export function OrgSwitcher() {
             {(org) => (
               <button
                 onClick={() => handleSelect(org.id)}
-                class={`w-full text-left px-3 py-1.5 text-sm transition-colors ${selected() === org.id ? 'text-accent bg-accent/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'}`}
+                class={`w-full text-left px-3 py-1.5 text-sm transition-colors ${getSelectedRaw() === org.id ? 'text-accent bg-accent/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'}`}
               >
                 {org.name}
               </button>
@@ -79,7 +56,7 @@ export function OrgSwitcher() {
             <div class="border-t border-border/40 my-1" />
             <button
               onClick={() => handleSelect('all')}
-              class={`w-full text-left px-3 py-1.5 text-sm transition-colors ${selected() === 'all' ? 'text-accent bg-accent/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'}`}
+              class={`w-full text-left px-3 py-1.5 text-sm transition-colors ${getSelectedRaw() === 'all' ? 'text-accent bg-accent/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'}`}
             >
               All Organizations
             </button>
