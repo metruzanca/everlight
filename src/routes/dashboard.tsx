@@ -10,6 +10,9 @@ import { AgentStats, type AgentStat } from '../components/dashboard/agent-stats'
 import { CallDatabase, type CallRecord, type CallOutcome } from '../components/dashboard/call-database'
 import { CallLogsTeaser } from '../components/dashboard/call-logs-teaser'
 import { formatDuration } from '../lib/format'
+import { createLogger } from '../lib/logger'
+
+const log = createLogger('Dashboard')
 
 export const Route = createFileRoute('/dashboard')({ component: Dashboard })
 
@@ -236,6 +239,7 @@ function DashboardContent() {
 }
 
 function SectionError(props: { error: Error; label?: string }) {
+  log.error({ err: props.error, label: props.label ?? 'section' }, 'SectionError boundary caught')
   return (
     <Card class="border-destructive/30 bg-destructive/5">
       <CardContent class="pt-6 space-y-2">

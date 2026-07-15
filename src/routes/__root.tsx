@@ -23,6 +23,9 @@ import { Show, Suspense, createSignal, type Component } from 'solid-js'
 import styleCss from '../styles.css?url'
 import { authClient } from '../lib/auth-client'
 import { UserProvider } from '../lib/user-provider'
+import { createLogger } from '../lib/logger'
+
+const log = createLogger('AppError')
 
 export const Route = createRootRouteWithContext()({
   head: () => ({
@@ -99,6 +102,8 @@ function VerifyBanner() {
 function AppError(props: { error: unknown; reset?: () => void }) {
   const message = () =>
     props.error instanceof Error ? props.error.message : 'An unexpected error occurred'
+
+  log.error({ err: props.error }, 'AppError boundary caught')
 
   return (
     <div class="min-h-screen flex flex-col">

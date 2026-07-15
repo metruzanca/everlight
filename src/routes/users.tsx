@@ -1,13 +1,15 @@
-import { createFileRoute, CatchBoundary } from '@tanstack/solid-router'
+import { createFileRoute } from '@tanstack/solid-router'
 import { For, createSignal, Show } from 'solid-js'
 import { createSolidTable, getCoreRowModel, createColumnHelper, flexRender } from '@tanstack/solid-table'
-import { useUserContext } from '../lib/user-provider'
 import { authClient } from '../lib/auth-client'
+import { useUserContext } from '../lib/user-provider'
 import { AppNav } from '../components/ui/app-nav'
-import { Card, CardContent } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { DropdownMenu, DropdownMenuItem } from '../components/ui/dropdown-menu'
 import { InviteDialog } from '../components/ui/invite-dialog'
+import { createLogger } from '../lib/logger'
+
+const log = createLogger('Users')
 
 export const Route = createFileRoute('/users')({ component: Users })
 
@@ -34,10 +36,11 @@ function Users() {
   const ctx = useUserContext()
   const session = authClient.useSession()
   const [deleting, setDeleting] = createSignal<string | null>(null)
-  const [removing, setRemoving] = createSignal<string | null>(null)
   const [showInvite, setShowInvite] = createSignal(false)
+  const [removing, setRemoving] = createSignal<string | null>(null)
 
   const handleDelete = async (userId: string) => {
+    log.debug({ userId, isAdmin: ctx.isAdmin() }, 'handleDelete')
     if (!confirm('Delete this user? This cannot be undone.')) return
     setDeleting(userId)
     try {
@@ -46,13 +49,17 @@ function Users() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId }),
       })
-      if (res.status === 401) { window.location.href = '/sign-in'; return }
+      if (res.status === 401) { log.warn('Unauthorized, redirecting to sign-in'); window.location.href = '/sign-in'; return }
       if (!res.ok) {
         const body = await res.json()
+        log.warn({ status: res.status, error: body.error }, 'delete failed')
         alert(body.error || 'Failed to delete user')
         return
       }
+      log.debug('delete succeeded')
       ctx.refetchUsers()
+    } catch (err) {
+      log.error({ err }, 'delete error')
     } finally {
       setDeleting(null)
     }
@@ -60,6 +67,7 @@ function Users() {
 
   async function handleRemove(userId: string) {
     const oid = ctx.selectedOrgId()
+    log.debug({ userId, orgId: oid }, 'handleRemove')
     if (!oid || !confirm('Remove this member from the organization?')) return
     setRemoving(userId)
     try {
@@ -70,10 +78,14 @@ function Users() {
       })
       if (!res.ok) {
         const body = await res.json()
+        log.warn({ status: res.status, error: body.error }, 'remove failed')
         alert(body.error || 'Failed to remove member')
         return
       }
+      log.debug('remove succeeded')
       ctx.refetchMembers()
+    } catch (err) {
+      log.error({ err }, 'remove error')
     } finally {
       setRemoving(null)
     }
@@ -82,6 +94,7 @@ function Users() {
   async function handleLeave() {
     const oid = ctx.selectedOrgId()
     const uid = session().data?.user?.id
+    log.debug({ orgId: oid, userId: uid }, 'handleLeave')
     if (!oid || !uid) return
     if (!confirm('Leave this organization?')) return
     const res = await fetch('/api/org-members', {
@@ -89,17 +102,21 @@ function Users() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ orgId: oid, userId: uid }),
     })
+    log.debug({ status: res.status }, 'leave response')
     if (!res.ok) {
       const body = await res.json()
+      log.warn({ error: body.error }, 'leave failed')
       alert(body.error || 'Failed to leave')
       return
     }
+    log.debug('leave succeeded')
     ctx.refetchMembers()
   }
 
   async function handleToggleAutoJoin() {
     const oid = ctx.selectedOrgId()
     const current = ctx.domainAutoJoin()
+    log.debug({ orgId: oid, current, next: !current }, 'handleToggleAutoJoin')
     if (!oid) return
     try {
       const res = await fetch('/api/organizations', {
@@ -109,11 +126,15 @@ function Users() {
       })
       if (!res.ok) {
         const body = await res.json()
+        log.warn({ status: res.status, error: body.error }, 'toggle failed')
         alert(body.error || 'Failed to update setting')
         return
       }
+      log.debug('toggle succeeded')
       ctx.refetchMembers()
-    } catch {}
+    } catch (err) {
+      log.error({ err }, 'toggle error')
+    }
   }
 
   const columnHelper = createColumnHelper<UserEntry>()
@@ -206,99 +227,15 @@ function Users() {
   const table = () => {
     const u = ctx.users()
     deleting()
+    log.debug({ userCount: u.length }, 'table computed')
     if (u.length === 0) return null
+    const cols = ctx.isAdmin() ? columns : columns.slice(0, -1)
+    log.debug({ colCount: cols.length }, 'creating table')
     return createSolidTable({
       get data() { return u },
-      get columns() { return ctx.isAdmin() ? columns : columns.slice(0, -1) },
+      get columns() { return cols },
       getCoreRowModel: getCoreRowModel(),
     })
-  }
-
-  function MembersSection() {
-    const ctx2 = useUserContext()
-    return (
-      <section>
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <div>
-            <h2 class="text-lg font-heading font-semibold">Members</h2>
-            <p class="text-sm text-muted-foreground">
-              {ctx2.members().length} {ctx2.members().length === 1 ? 'member' : 'members'}
-            </p>
-          </div>
-          <div class="flex items-center gap-3">
-            <Show when={ctx2.canManage()}>
-              <Button onClick={() => setShowInvite(true)} size="sm">Invite</Button>
-            </Show>
-            <Show when={session().data?.user?.id && !ctx2.isOwner() && !ctx2.isAdmin()}>
-              <Button onClick={handleLeave} variant="outline" size="sm">Leave</Button>
-            </Show>
-          </div>
-        </div>
-
-        <Show when={ctx2.canManage()}>
-          <div class="flex items-center gap-3 mb-4 p-3 rounded-lg border border-border bg-card">
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                class="sr-only peer"
-                checked={ctx2.domainAutoJoin()}
-                onChange={handleToggleAutoJoin}
-              />
-              <div class="w-9 h-5 bg-muted rounded-full peer peer-checked:bg-primary peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-background after:rounded-full after:h-4 after:w-4 after:transition-all" />
-            </label>
-            <div>
-              <p class="text-sm font-medium">Auto-invite by domain</p>
-              <p class="text-xs text-muted-foreground">Automatically invite new users with the same email domain as your org.</p>
-            </div>
-          </div>
-        </Show>
-
-        <Show when={ctx2.members().length > 0} fallback={
-          <div class="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-            {ctx2.membersLoading() ? 'Loading members...' : 'No members yet.'}
-          </div>
-        }>
-          <div class="overflow-x-auto rounded-2xl border border-border">
-            <table class="w-full text-sm">
-              <thead>
-                <tr class="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                  <th class="px-4 py-3 font-medium">Name</th>
-                  <th class="px-4 py-3 font-medium">Email</th>
-                  <th class="px-4 py-3 font-medium">Role</th>
-                  <th class="px-4 py-3 font-medium">Joined</th>
-                  <th class="px-4 py-3 font-medium" />
-                </tr>
-              </thead>
-              <tbody>
-                <For each={ctx2.members()}>
-                  {(member) => (
-                    <tr class="border-b border-border/60 hover:bg-muted/30 transition-colors">
-                      <td class="px-4 py-3 font-medium">{member.userName}</td>
-                      <td class="px-4 py-3 text-muted-foreground">{member.userEmail}</td>
-                      <td class="px-4 py-3">
-                        <Show when={member.userId === ctx2.ownerId()} fallback={
-                          <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground">{member.role}</span>
-                        }>
-                          <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-accent/10 text-accent">Owner</span>
-                        </Show>
-                      </td>
-                      <td class="px-4 py-3 text-muted-foreground whitespace-nowrap text-xs">{formatDate(member.createdAt)}</td>
-                      <td class="px-4 py-3 text-right">
-                        <Show when={ctx2.canManage() && member.userId !== ctx2.ownerId() && member.userId !== session().data?.user?.id}>
-                          <Button onClick={() => handleRemove(member.userId)} variant="destructive" size="xs" disabled={removing() === member.userId}>
-                            {removing() === member.userId ? '...' : 'Remove'}
-                          </Button>
-                        </Show>
-                      </td>
-                    </tr>
-                  )}
-                </For>
-              </tbody>
-            </table>
-          </div>
-        </Show>
-      </section>
-    )
   }
 
   return (
@@ -307,9 +244,10 @@ function Users() {
       <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
         <h1 class="text-2xl font-heading font-bold">Users</h1>
 
-        <CatchBoundary getResetKey={() => 0} errorComponent={(p) => <SectionError {...p} label="User list" />}>
-          <Show when={table()}>
-            {(t) => (
+        <Show when={table()}>
+          {(t) => {
+            log.debug({ rows: t().getRowModel().rows.length }, 'rendering user table')
+            return (
               <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                   <thead>
@@ -344,36 +282,147 @@ function Users() {
                   </tbody>
                 </table>
               </div>
-            )}
-          </Show>
-        </CatchBoundary>
+            )
+          }}
+        </Show>
 
-        <CatchBoundary getResetKey={() => 0} errorComponent={(p) => <SectionError {...p} label="Members" />}>
-          <Show when={ctx.selectedOrgId()}>
-            <MembersSection />
-          </Show>
-        </CatchBoundary>
+        <Show when={ctx.selectedOrgId()}>
+          {(oid) => {
+            log.debug({ orgId: oid(), memberCount: ctx.members().length }, 'rendering members section')
+            return (
+              <section>
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                  <div>
+                    <h2 class="text-lg font-heading font-semibold">Members</h2>
+                    <p class="text-sm text-muted-foreground">
+                      {ctx.members().length} {ctx.members().length === 1 ? 'member' : 'members'}
+                    </p>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <Show when={ctx.canManage()}>
+                      <Button onClick={() => {
+                        log.debug('open invite dialog')
+                        setShowInvite(true)
+                      }} size="sm">
+                        Invite
+                      </Button>
+                    </Show>
+                    <Show when={session().data?.user?.id && !ctx.isOwner() && !ctx.isAdmin()}>
+                      <Button onClick={() => {
+                        log.debug('leave org clicked')
+                        handleLeave()
+                      }} variant="outline" size="sm">
+                        Leave
+                      </Button>
+                    </Show>
+                  </div>
+                </div>
+
+                <Show when={ctx.canManage()}>
+                  <div class="flex items-center gap-3 mb-4 p-3 rounded-lg border border-border bg-card">
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        class="sr-only peer"
+                        checked={ctx.domainAutoJoin()}
+                        onChange={handleToggleAutoJoin}
+                      />
+                      <div class="w-9 h-5 bg-muted rounded-full peer peer-checked:bg-primary peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-background after:rounded-full after:h-4 after:w-4 after:transition-all" />
+                    </label>
+                    <div>
+                      <p class="text-sm font-medium">Auto-invite by domain</p>
+                      <p class="text-xs text-muted-foreground">
+                        Automatically invite new users with the same email domain as your org.
+                      </p>
+                    </div>
+                  </div>
+                </Show>
+
+                <Show
+                  when={ctx.members().length > 0}
+                  fallback={
+                    <div class="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+                      {ctx.membersLoading() ? 'Loading members...' : 'No members yet.'}
+                    </div>
+                  }
+                >
+                  <div class="overflow-x-auto rounded-2xl border border-border">
+                    <table class="w-full text-sm">
+                      <thead>
+                        <tr class="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                          <th class="px-4 py-3 font-medium">Name</th>
+                          <th class="px-4 py-3 font-medium">Email</th>
+                          <th class="px-4 py-3 font-medium">Role</th>
+                          <th class="px-4 py-3 font-medium">Joined</th>
+                          <th class="px-4 py-3 font-medium" />
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <For each={ctx.members()}>
+                          {(member) => (
+                            <tr class="border-b border-border/60 hover:bg-muted/30 transition-colors">
+                              <td class="px-4 py-3 font-medium">{member.userName}</td>
+                              <td class="px-4 py-3 text-muted-foreground">{member.userEmail}</td>
+                              <td class="px-4 py-3">
+                                <Show
+                                  when={member.userId === ctx.ownerId()}
+                                  fallback={
+                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground">
+                                      {member.role}
+                                    </span>
+                                  }
+                                >
+                                  <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-accent/10 text-accent">
+                                    Owner
+                                  </span>
+                                </Show>
+                              </td>
+                              <td class="px-4 py-3 text-muted-foreground whitespace-nowrap text-xs">
+                                {formatDate(member.createdAt)}
+                              </td>
+                              <td class="px-4 py-3 text-right">
+                                <Show
+                                  when={
+                                    ctx.canManage() &&
+                                    member.userId !== ctx.ownerId() &&
+                                    member.userId !== session().data?.user?.id
+                                  }
+                                >
+                                  <Button
+                                    onClick={() => {
+                                      log.debug({ userId: member.userId, name: member.userName }, 'remove member clicked')
+                                      handleRemove(member.userId)
+                                    }}
+                                    variant="destructive"
+                                    size="xs"
+                                    disabled={removing() === member.userId}
+                                  >
+                                    {removing() === member.userId ? '...' : 'Remove'}
+                                  </Button>
+                                </Show>
+                              </td>
+                            </tr>
+                          )}
+                        </For>
+                      </tbody>
+                    </table>
+                  </div>
+                </Show>
+              </section>
+            )
+          }}
+        </Show>
       </main>
 
       <InviteDialog
         orgId={ctx.selectedOrgId()!}
         open={showInvite()}
         onClose={() => {
+          log.debug('invite dialog closed, refetching members')
           setShowInvite(false)
           ctx.refetchMembers()
         }}
       />
     </div>
-  )
-}
-
-function SectionError(props: { error: Error; label?: string }) {
-  return (
-    <Card class="border-destructive/30 bg-destructive/5">
-      <CardContent class="pt-6 space-y-2">
-        <p class="text-destructive font-medium text-sm">Failed to load {props.label ?? 'section'}</p>
-        <p class="text-xs text-muted-foreground">{props.error.message}</p>
-      </CardContent>
-    </Card>
   )
 }

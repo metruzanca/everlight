@@ -3,12 +3,20 @@ import { eq, inArray } from 'drizzle-orm'
 import { env } from '../env'
 import { db } from '../db'
 import { orgMember, orgAssistant, user as userSchema } from '../db/schema'
+import { createLogger } from './logger'
+
+const log = createLogger('vapi')
 
 function createClient() {
-  if (!env.VAPI_API_KEY) return null
+  if (!env.VAPI_API_KEY) {
+    log.warn('VAPI_API_KEY not set, Vapi client disabled')
+    return null
+  }
   try {
+    log.info('Vapi client initialized')
     return new VapiClient({ token: env.VAPI_API_KEY })
-  } catch {
+  } catch (err) {
+    log.error({ err }, 'Failed to create Vapi client')
     return null
   }
 }
@@ -86,10 +94,12 @@ export async function getStats(assistantIds?: string[]): Promise<VapiStats> {
     ? (call: { assistantId?: string }) => call.assistantId != null && assistantIds.includes(call.assistantId)
     : () => true
 
+  const start = Date.now()
   const recentCalls = await client.calls.list({
     limit: 100,
     createdAtGe: thirtyDaysAgo.toISOString(),
   })
+  log.info({ callCount: recentCalls.length, durationMs: Date.now() - start }, 'Vapi calls.list')
 
   const filteredCalls = recentCalls.filter(assistantFilter)
 
@@ -138,10 +148,12 @@ export async function getCallLogs(limit = 20, assistantIds?: string[]): Promise<
     throw new Error('VAPI_API_KEY not configured')
   }
 
+  const start = Date.now()
   const [assistants, calls] = await Promise.all([
     client.assistants.list().catch(() => []),
     client.calls.list({ limit }),
   ])
+  log.info({ assistantCount: assistants.length, callCount: calls.length, durationMs: Date.now() - start }, 'Vapi calls.list + assistants.list')
 
   const assistantFilter = assistantIds && assistantIds.length > 0
     ? (call: { assistantId?: string }) => call.assistantId != null && assistantIds.includes(call.assistantId)

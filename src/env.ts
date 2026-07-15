@@ -12,6 +12,7 @@ export const env = createEnv({
     DATABASE_URL: z.string().url(),
     PORT: z.coerce.number().optional().default(3000),
     RAILWAY_PUBLIC_DOMAIN: z.string().optional(),
+    LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).optional(),
     RESEND_API_KEY: z.string().optional(),
     RESEND_FROM_EMAIL: z.string().email(),
     SERVER_URL: z.string().url().optional(),
