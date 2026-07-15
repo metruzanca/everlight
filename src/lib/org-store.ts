@@ -17,7 +17,12 @@ function save(v: string | null) {
   } catch {}
 }
 
-const [selectedOrgId, setSelectedOrgId] = createSignal<string | null>(loadSaved())
+const [selectedOrgId, setSelectedOrgId] = createSignal<string | null>(null)
+
+export function initSelectedOrg() {
+  const saved = loadSaved()
+  if (saved) setSelectedOrgId(saved)
+}
 
 export function getSelectedOrgId() {
   return selectedOrgId

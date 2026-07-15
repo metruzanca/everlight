@@ -5,12 +5,13 @@ import {
   createResource,
   createMemo,
   createEffect,
+  onMount,
   type JSX,
   type Accessor,
 } from 'solid-js'
 import { isServer } from 'solid-js/web'
 import { authClient } from './auth-client'
-import { getSelectedOrgId, setSelectedOrg } from './org-store'
+import { getSelectedOrgId, setSelectedOrg, initSelectedOrg } from './org-store'
 
 type UserEntry = {
   id: string
@@ -92,6 +93,10 @@ function UserDataLayer(props: {
 }) {
   const [fetchTick] = createSignal(!isServer)
 
+  onMount(() => {
+    if (!isServer) initSelectedOrg()
+  })
+
   const selectedOrgId = createMemo(() => {
     const id = getSelectedOrgId()()
     return !id || id === 'all' ? null : id
@@ -114,7 +119,8 @@ function UserDataLayer(props: {
     async () => {
       const res = await fetch('/api/users')
       if (!res.ok) throw new Error('Failed to fetch users')
-      return res.json() as Promise<UsersResponse>
+      const data: UsersResponse = await res.json()
+      return data
     },
   )
 
@@ -123,7 +129,10 @@ function UserDataLayer(props: {
     async (oid) => {
       if (!oid) return null
       const res = await fetch(`/api/org-members?orgId=${encodeURIComponent(oid)}`)
-      if (!res.ok) throw new Error('Failed to fetch members')
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.error || 'Failed to fetch members')
+      }
       return res.json()
     },
   )
