@@ -4,6 +4,7 @@ import { apiHandler, apiRespond, apiError } from '../../lib/api-logger'
 import { requireAuth, baseUrl, sendEmail } from '../../lib/auth'
 import { db } from '../../db'
 import { organization, user as userTable, orgInvitation } from '../../db/schema'
+import { parseBody, createInviteSchema } from '../../lib/validation'
 
 export const Route = createFileRoute('/api/invites')({
   server: {
@@ -44,8 +45,9 @@ export const Route = createFileRoute('/api/invites')({
       POST: async ({ request }) => apiHandler(request, async () => {
         const authSession = await requireAuth(request)
 
-        const body: { orgId: string; email: string; role?: string } = await request.json()
-        if (!body.orgId || !body.email) return apiError('orgId and email are required')
+        const parsed = parseBody(createInviteSchema, await request.json())
+        if (parsed instanceof Response) return parsed
+        const body = parsed
 
         const org = await db.select().from(organization).where(eq(organization.id, body.orgId)).limit(1)
         if (org.length === 0) return apiError('Organization not found', 404)

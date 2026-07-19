@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm'
 import { requireAuth } from '../../../lib/auth'
 import { db } from '../../../db'
 import { orgInvitation } from '../../../db/schema'
+import { parseBody, tokenSchema } from '../../../lib/validation'
 
 export const Route = createFileRoute('/api/invites/decline')({
   server: {
@@ -11,8 +12,9 @@ export const Route = createFileRoute('/api/invites/decline')({
       POST: async ({ request }) => apiHandler(request, async () => {
         const authSession = await requireAuth(request)
 
-        const body: { token: string } = await request.json()
-        if (!body.token) return apiError('Token is required')
+        const parsed = parseBody(tokenSchema, await request.json())
+        if (parsed instanceof Response) return parsed
+        const body = parsed
 
         const invite = await db
           .select()

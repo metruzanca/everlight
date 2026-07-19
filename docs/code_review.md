@@ -9,9 +9,6 @@
 
 ## 🟠 High
 
-- [ ] **No Zod input validation on API routes** — All POST/PATCH endpoints use manual truthy checks. Create shared Zod schemas.
-
-
 ## 🟡 Medium
 
 - [ ] **`createSolidTable` recreated on every render** — `src/routes/users.tsx:227-239`. Wrap in `createMemo`.

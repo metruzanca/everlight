@@ -4,6 +4,7 @@ import { requireAuth } from '../../lib/auth'
 import { db } from '../../db'
 import { organization, orgMember, user as userTable } from '../../db/schema'
 import { apiHandler, apiRespond, apiError } from '../../lib/api-logger'
+import { parseBody, createOrgSchema, updateOrgSchema } from '../../lib/validation'
 
 export const Route = createFileRoute('/api/organizations')({
   server: {
@@ -40,8 +41,9 @@ export const Route = createFileRoute('/api/organizations')({
       POST: async ({ request }) => apiHandler(request, async () => {
         const authSession = await requireAuth(request)
 
-        const body: { name?: string; domainAutoJoin?: boolean } = await request.json()
-        if (!body.name?.trim()) return apiError('Organization name is required')
+        const parsed = parseBody(createOrgSchema, await request.json())
+        if (parsed instanceof Response) return parsed
+        const body = parsed
 
         const id = crypto.randomUUID()
         const now = new Date()
@@ -71,8 +73,9 @@ export const Route = createFileRoute('/api/organizations')({
       PATCH: async ({ request }) => apiHandler(request, async () => {
         const authSession = await requireAuth(request)
 
-        const body: { id: string; domainAutoJoin?: boolean } = await request.json()
-        if (!body.id) return apiError('Organization ID is required')
+        const parsed = parseBody(updateOrgSchema, await request.json())
+        if (parsed instanceof Response) return parsed
+        const body = parsed
 
         const org = await db
           .select()

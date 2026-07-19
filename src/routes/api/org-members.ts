@@ -4,6 +4,7 @@ import { requireAuth } from '../../lib/auth'
 import { db } from '../../db'
 import { organization, orgMember, user as userTable } from '../../db/schema'
 import { apiHandler, apiRespond, apiError } from '../../lib/api-logger'
+import { parseBody, parseQuery, removeMemberSchema, orgQuerySchema } from '../../lib/validation'
 
 export const Route = createFileRoute('/api/org-members')({
   server: {
@@ -12,8 +13,9 @@ export const Route = createFileRoute('/api/org-members')({
         const authSession = await requireAuth(request)
 
         const url = new URL(request.url)
-        const orgId = url.searchParams.get('orgId')
-        if (!orgId) return apiError('orgId is required')
+        const q = parseQuery(orgQuerySchema, url)
+        if (q instanceof Response) return q
+        const orgId = q.orgId
 
         const membership = await db
           .select()
@@ -60,8 +62,9 @@ export const Route = createFileRoute('/api/org-members')({
       DELETE: async ({ request }) => apiHandler(request, async () => {
         const authSession = await requireAuth(request)
 
-        const body: { orgId: string; userId: string } = await request.json()
-        if (!body.orgId || !body.userId) return apiError('orgId and userId are required')
+        const parsed = parseBody(removeMemberSchema, await request.json())
+        if (parsed instanceof Response) return parsed
+        const body = parsed
 
         const org = await db.select().from(organization).where(eq(organization.id, body.orgId)).limit(1)
         if (org.length === 0) return apiError('Organization not found', 404)

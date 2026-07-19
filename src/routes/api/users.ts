@@ -4,6 +4,7 @@ import { requireAuth } from '../../lib/auth'
 import { db } from '../../db'
 import { user as userTable, account, session as sessionTable, verification, orgMember, organization } from '../../db/schema'
 import { apiHandler, apiRespond, apiError } from '../../lib/api-logger'
+import { parseBody, deleteUserSchema } from '../../lib/validation'
 
 export const Route = createFileRoute('/api/users')({
   server: {
@@ -49,8 +50,9 @@ export const Route = createFileRoute('/api/users')({
         const currentUser = (await db.select().from(userTable).where(eq(userTable.id, authSession.user.id)).limit(1))[0]
         if (!currentUser || currentUser.role !== 'admin') return apiError('Forbidden', 403)
 
-        const body: { userId?: string } = await request.json()
-        if (!body.userId) return apiError('userId required')
+        const parsed = parseBody(deleteUserSchema, await request.json())
+        if (parsed instanceof Response) return parsed
+        const body = parsed
 
         const allUsers = await db.select({ id: userTable.id }).from(userTable).orderBy(asc(userTable.createdAt)).limit(1)
         const firstUserId = allUsers.length > 0 ? allUsers[0].id : null
