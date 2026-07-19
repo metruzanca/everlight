@@ -1,4 +1,5 @@
 import { createLogger } from './logger'
+import { checkRateLimit } from './rate-limiter'
 
 function isProduction(): boolean {
   try {
@@ -12,12 +13,18 @@ export async function apiHandler(
   request: Request,
   handler: () => Promise<Response>,
   name: string,
+  rateLimit?: { max: number; windowMs: number },
 ): Promise<Response> {
   const log = createLogger(name)
   const url = new URL(request.url)
   const method = request.method
   const path = url.pathname + url.search
   const start = Date.now()
+
+  if (rateLimit) {
+    const blocked = checkRateLimit(name, request, rateLimit.max, rateLimit.windowMs)
+    if (blocked) return blocked
+  }
 
   log.info({ method, path }, 'request')
 

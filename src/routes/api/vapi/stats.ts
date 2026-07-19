@@ -16,7 +16,7 @@ export const Route = createFileRoute('/api/vapi/stats')({
         const assistantIds = await resolveOrgAssistantIds(session.user.id, orgId)
         const stats = await getStats(assistantIds?.length ? assistantIds : (assistantIds === null ? undefined : []))
         return apiRespond(stats)
-      }, 'vapi-stats'),
+      }, 'vapi-stats', { max: 30, windowMs: 60_000 }),
     },
   },
 })

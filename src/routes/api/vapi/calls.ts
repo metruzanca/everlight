@@ -11,13 +11,13 @@ export const Route = createFileRoute('/api/vapi/calls')({
         if (!session) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } })
 
         const url = new URL(request.url)
-        const limit = Number(url.searchParams.get('limit')) || 20
+        const limit = Math.min(Number(url.searchParams.get('limit')) || 20, 100)
         const orgId = url.searchParams.get('orgId')
 
         const assistantIds = await resolveOrgAssistantIds(session.user.id, orgId)
         const calls = await getCallLogs(limit, assistantIds?.length ? assistantIds : (assistantIds === null ? undefined : []))
         return apiRespond(calls)
-      }, 'vapi-calls'),
+      }, 'vapi-calls', { max: 30, windowMs: 60_000 }),
     },
   },
 })

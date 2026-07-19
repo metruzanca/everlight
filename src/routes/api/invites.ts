@@ -102,7 +102,7 @@ export const Route = createFileRoute('/api/invites')({
         )
 
         return apiRespond({ success: true }, 201)
-      }, 'invites'),
+      }, 'invites', { max: 10, windowMs: 60_000 }),
     },
   },
 })
