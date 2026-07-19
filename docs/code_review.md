@@ -11,7 +11,7 @@
 
 - [ ] **Race condition in first-user-as-admin logic** — `src/lib/auth.ts:40-43`. Two simultaneous signups can both become admin. Use a dedicated flag table or advisory lock.
 - [ ] **No Zod input validation on API routes** — All POST/PATCH endpoints use manual truthy checks. Create shared Zod schemas.
-- [ ] **Auth check duplicated across 8 API files** — Every route repeats `auth.api.getSession()` + error check. Create `requireAuth(request)` helper.
+
 
 ## 🟡 Medium
 

@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/solid-router'
 import { eq, asc, inArray } from 'drizzle-orm'
-import { auth } from '../../lib/auth'
+import { requireAuth } from '../../lib/auth'
 import { db } from '../../db'
 import { user as userTable, account, session as sessionTable, verification, orgMember, organization } from '../../db/schema'
 import { apiHandler, apiRespond, apiError } from '../../lib/api-logger'
@@ -9,8 +9,7 @@ export const Route = createFileRoute('/api/users')({
   server: {
     handlers: {
       GET: async ({ request }) => apiHandler(request, async () => {
-        const authSession = await auth.api.getSession({ headers: request.headers })
-        if (!authSession) return apiError('Unauthorized', 401)
+        const authSession = await requireAuth(request)
 
         const currentUser = (await db.select().from(userTable).where(eq(userTable.id, authSession.user.id)).limit(1))[0]
         if (!currentUser || currentUser.role !== 'admin') {
@@ -45,8 +44,7 @@ export const Route = createFileRoute('/api/users')({
       }, 'users'),
 
       DELETE: async ({ request }) => apiHandler(request, async () => {
-        const authSession = await auth.api.getSession({ headers: request.headers })
-        if (!authSession) return apiError('Unauthorized', 401)
+        const authSession = await requireAuth(request)
 
         const currentUser = (await db.select().from(userTable).where(eq(userTable.id, authSession.user.id)).limit(1))[0]
         if (!currentUser || currentUser.role !== 'admin') return apiError('Forbidden', 403)

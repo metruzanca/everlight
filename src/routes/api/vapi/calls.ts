@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/solid-router'
-import { auth } from '../../../lib/auth'
+import { requireAuth } from '../../../lib/auth'
 import { getCallLogs, resolveOrgAssistantIds } from '../../../lib/vapi'
 import { apiHandler, apiRespond } from '../../../lib/api-logger'
 
@@ -7,8 +7,7 @@ export const Route = createFileRoute('/api/vapi/calls')({
   server: {
     handlers: {
       GET: async ({ request }) => apiHandler(request, async () => {
-        const session = await auth.api.getSession({ headers: request.headers })
-        if (!session) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } })
+        const session = await requireAuth(request)
 
         const url = new URL(request.url)
         const limit = Math.min(Number(url.searchParams.get('limit')) || 20, 100)

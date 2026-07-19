@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/solid-router'
 import { eq, and } from 'drizzle-orm'
-import { auth } from '../../lib/auth'
+import { requireAuth } from '../../lib/auth'
 import { db } from '../../db'
 import { organization, orgMember, user as userTable } from '../../db/schema'
 import { apiHandler, apiRespond, apiError } from '../../lib/api-logger'
@@ -9,8 +9,7 @@ export const Route = createFileRoute('/api/org-members')({
   server: {
     handlers: {
       GET: async ({ request }) => apiHandler(request, async () => {
-        const authSession = await auth.api.getSession({ headers: request.headers })
-        if (!authSession) return apiError('Unauthorized', 401)
+        const authSession = await requireAuth(request)
 
         const url = new URL(request.url)
         const orgId = url.searchParams.get('orgId')
@@ -59,8 +58,7 @@ export const Route = createFileRoute('/api/org-members')({
       }, 'org-members'),
 
       DELETE: async ({ request }) => apiHandler(request, async () => {
-        const authSession = await auth.api.getSession({ headers: request.headers })
-        if (!authSession) return apiError('Unauthorized', 401)
+        const authSession = await requireAuth(request)
 
         const body: { orgId: string; userId: string } = await request.json()
         if (!body.orgId || !body.userId) return apiError('orgId and userId are required')

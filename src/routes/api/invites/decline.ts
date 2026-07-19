@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/solid-router'
 import { apiHandler, apiRespond, apiError } from '../../../lib/api-logger'
 import { eq } from 'drizzle-orm'
-import { auth } from '../../../lib/auth'
+import { requireAuth } from '../../../lib/auth'
 import { db } from '../../../db'
 import { orgInvitation } from '../../../db/schema'
 
@@ -9,8 +9,7 @@ export const Route = createFileRoute('/api/invites/decline')({
   server: {
     handlers: {
       POST: async ({ request }) => apiHandler(request, async () => {
-        const authSession = await auth.api.getSession({ headers: request.headers })
-        if (!authSession) return apiError('Unauthorized', 401)
+        const authSession = await requireAuth(request)
 
         const body: { token: string } = await request.json()
         if (!body.token) return apiError('Token is required')

@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/solid-router'
 import { eq, asc, inArray } from 'drizzle-orm'
-import { auth } from '../../lib/auth'
+import { requireAuth } from '../../lib/auth'
 import { db } from '../../db'
 import { organization, orgMember, user as userTable } from '../../db/schema'
 import { apiHandler, apiRespond, apiError } from '../../lib/api-logger'
@@ -9,8 +9,7 @@ export const Route = createFileRoute('/api/organizations')({
   server: {
     handlers: {
       GET: async ({ request }) => apiHandler(request, async () => {
-        const authSession = await auth.api.getSession({ headers: request.headers })
-        if (!authSession) return apiError('Unauthorized', 401)
+        const authSession = await requireAuth(request)
 
         const currentUser = await db
           .select({ role: userTable.role })
@@ -39,8 +38,7 @@ export const Route = createFileRoute('/api/organizations')({
       }, 'organizations'),
 
       POST: async ({ request }) => apiHandler(request, async () => {
-        const authSession = await auth.api.getSession({ headers: request.headers })
-        if (!authSession) return apiError('Unauthorized', 401)
+        const authSession = await requireAuth(request)
 
         const body: { name?: string; domainAutoJoin?: boolean } = await request.json()
         if (!body.name?.trim()) return apiError('Organization name is required')
@@ -71,8 +69,7 @@ export const Route = createFileRoute('/api/organizations')({
       }, 'organizations'),
 
       PATCH: async ({ request }) => apiHandler(request, async () => {
-        const authSession = await auth.api.getSession({ headers: request.headers })
-        if (!authSession) return apiError('Unauthorized', 401)
+        const authSession = await requireAuth(request)
 
         const body: { id: string; domainAutoJoin?: boolean } = await request.json()
         if (!body.id) return apiError('Organization ID is required')

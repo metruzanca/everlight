@@ -1,5 +1,6 @@
 import { createLogger } from './logger'
 import { checkRateLimit } from './rate-limiter'
+import { AuthError } from './auth'
 
 function isProduction(): boolean {
   try {
@@ -35,6 +36,7 @@ export async function apiHandler(
     log[level]({ method, path, status: response.status, durationMs: duration }, 'response')
     return response
   } catch (err) {
+    if (err instanceof AuthError) return err.response
     const duration = Date.now() - start
     log.error({ method, path, durationMs: duration, err }, 'unhandled error')
     const message = isProduction() ? 'Internal server error' : (err instanceof Error ? err.message : 'Internal server error')

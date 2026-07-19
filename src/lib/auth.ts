@@ -109,3 +109,21 @@ export const auth = betterAuth({
   },
   plugins: [tanstackStartCookies()],
 })
+
+export class AuthError extends Error {
+  response: Response
+  constructor() {
+    super('Unauthorized')
+    this.name = 'AuthError'
+    this.response = new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+}
+
+export async function requireAuth(request: Request) {
+  const session = await auth.api.getSession({ headers: request.headers })
+  if (!session) throw new AuthError()
+  return session
+}
