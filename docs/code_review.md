@@ -10,8 +10,8 @@
 
 ## 🟠 High
 
-- [ ] **Org switcher triggers full page reload** — `src/components/ui/org-switcher.tsx:28`. `window.location.reload()` defeats SPA reactivity. Remove reload and make dashboard reactive to org changes.
-- [ ] **Dashboard resources don't reactively track org changes** — `src/routes/dashboard.tsx:71-93`. Both `createResource` calls only track `shouldFetch`, not `orgId`. Change source to `createResource(() => ({ fetch: shouldFetch(), orgId: getSelectedOrgId()() }), fetcher)`.
+- [x] **Org switcher triggers full page reload** — `src/components/ui/org-switcher.tsx:28`. `window.location.reload()` defeats SPA reactivity. Remove reload and make dashboard reactive to org changes.
+- [x] **Dashboard resources don't reactively track org changes** — `src/routes/dashboard.tsx:71-93`. Both `createResource` calls only track `shouldFetch`, not `orgId`. Change source to `createResource(() => ({ fetch: shouldFetch(), orgId: getSelectedOrgId()() }), fetcher)`.
 - [x] **`resolveOrgAssistantIds` duplicated** — `src/routes/api/vapi/stats.ts:9-19` and `src/routes/api/vapi/calls.ts:9-19`. Extract to `src/lib/vapi.ts`.
 - [x] **`formatDuration` duplicated** — `src/lib/format.ts:1-4` vs `src/components/dashboard/stat-cards.tsx:97-101`. Import from `../../lib/format`.
 - [x] **Duplicate type definitions** — `src/routes/dashboard.tsx:19-39`. `VapiStats` and `VapiCallLogEntry` redefined locally when they exist in `src/lib/vapi.ts:56-76`. Import from there.

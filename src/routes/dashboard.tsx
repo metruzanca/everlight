@@ -48,10 +48,11 @@ function DashboardContent() {
     }
   }
 
-  const [stats] = createResource<VapiStats, boolean>(
-    shouldFetch,
-    async (_) => {
-      const orgId = ctx.selectedOrgId()
+  const vapiSource = () => ({ fetch: shouldFetch(), orgId: ctx.selectedOrgId() })
+
+  const [stats] = createResource<VapiStats, { fetch: boolean; orgId: string | null }>(
+    vapiSource,
+    async ({ orgId }) => {
       const params = orgId ? `?orgId=${encodeURIComponent(orgId)}` : ''
       const res = await fetchVapi(`/api/vapi/stats${params}`)
       if (res.status === 500) {
@@ -62,10 +63,9 @@ function DashboardContent() {
     },
   )
 
-  const [callLogs] = createResource<VapiCallLogEntry[], boolean>(
-    shouldFetch,
-    async (_) => {
-      const orgId = ctx.selectedOrgId()
+  const [callLogs] = createResource<VapiCallLogEntry[], { fetch: boolean; orgId: string | null }>(
+    vapiSource,
+    async ({ orgId }) => {
       const params = orgId ? `?orgId=${encodeURIComponent(orgId)}` : ''
       const res = await fetchVapi(`/api/vapi/calls${params}`)
       return res.json()

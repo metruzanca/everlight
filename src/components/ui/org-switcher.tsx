@@ -25,7 +25,6 @@ export function OrgSwitcher() {
   const handleSelect = (id: string | null) => {
     ctx.setSelectedOrgId(id)
     setOpen(false)
-    window.location.reload()
   }
 
   return (
