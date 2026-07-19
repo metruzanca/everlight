@@ -13,6 +13,15 @@ export const Route = createFileRoute('/api/users')({
         if (!authSession) return apiError('Unauthorized', 401)
 
         const currentUser = (await db.select().from(userTable).where(eq(userTable.id, authSession.user.id)).limit(1))[0]
+        if (!currentUser || currentUser.role !== 'admin') {
+          return apiRespond({
+            users: currentUser ? [currentUser] : [],
+            userOrgs: {},
+            currentUserRole: currentUser?.role ?? 'user',
+            firstUserId: null,
+          })
+        }
+
         const users = await db.select().from(userTable).orderBy(asc(userTable.createdAt))
 
         const userIds = users.map((u) => u.id)

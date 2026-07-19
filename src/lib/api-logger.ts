@@ -1,5 +1,13 @@
 import { createLogger } from './logger'
 
+function isProduction(): boolean {
+  try {
+    return import.meta.env.PROD
+  } catch {
+    return false
+  }
+}
+
 export async function apiHandler(
   request: Request,
   handler: () => Promise<Response>,
@@ -22,8 +30,9 @@ export async function apiHandler(
   } catch (err) {
     const duration = Date.now() - start
     log.error({ method, path, durationMs: duration, err }, 'unhandled error')
+    const message = isProduction() ? 'Internal server error' : (err instanceof Error ? err.message : 'Internal server error')
     return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : 'Internal server error' }),
+      JSON.stringify({ error: message }),
       { status: 500, headers: { 'Content-Type': 'application/json' } },
     )
   }

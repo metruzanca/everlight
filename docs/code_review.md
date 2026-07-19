@@ -16,7 +16,7 @@
 - [x] **`formatDuration` duplicated** — `src/lib/format.ts:1-4` vs `src/components/dashboard/stat-cards.tsx:97-101`. Import from `../../lib/format`.
 - [x] **Duplicate type definitions** — `src/routes/dashboard.tsx:19-39`. `VapiStats` and `VapiCallLogEntry` redefined locally when they exist in `src/lib/vapi.ts:56-76`. Import from there.
 - [ ] **No rate limiting** — Auth endpoints, invite creation, Vapi proxy have no rate limiting. Brute force / cost-abuse vectors open.
-- [ ] **`GET /api/users` leaks all user data to any authenticated user** — `src/routes/api/users.ts:11-36`. Restrict to site admins or scope to user's own orgs.
+- [x] **`GET /api/users` leaks all user data to any authenticated user** — `src/routes/api/users.ts:11-36`. Restrict to site admins or scope to user's own orgs.
 - [ ] **No upper bound on Vapi `limit` parameter** — `src/routes/api/vapi/calls.ts:29`. `?limit=1000000` triggers expensive API call. Use Zod schema with `.max(100)`.
 - [ ] **Race condition in first-user-as-admin logic** — `src/lib/auth.ts:40-43`. Two simultaneous signups can both become admin. Use a dedicated flag table or advisory lock.
 - [x] **Module-level singleton signal in `org-store.ts`** — `src/lib/org-store.ts:20`. Shared across sessions/tabs. Tie to session lifecycle in `UserProvider`.
@@ -30,7 +30,7 @@
 - [ ] **Non-null assertions on potentially null values (10+ instances)** — `src/routes/__root.tsx:71,75`, `src/routes/reset-password.tsx:43`, `src/components/dashboard/spend-chart.tsx:100,162-197`, `src/routes/users.tsx:418`. Replace with optional chaining / guard checks.
 - [ ] **Invite tokens in URL query params** — `src/routes/api/invites.ts:13`. Exposed to browser history, server logs, Referer header. Use POST body only.
 - [ ] **Missing security headers** — No CSP, HSTS, X-Frame-Options, X-Content-Type-Options. Add at Nitro/reverse proxy layer.
-- [ ] **Error messages leak internals** — `src/lib/api-logger.ts:22-28`. Returns `err.message` in 500 responses. Return generic message in production.
+- [x] **Error messages leak internals** — `src/lib/api-logger.ts:22-28`. Returns `err.message` in 500 responses. Return generic message in production.
 - [ ] **No server-side password strength** — `src/lib/auth.ts`. Add `minPasswordLength: 8` to `emailAndPassword` config.
 - [ ] **No session expiry configured** — `src/lib/auth.ts`. Configure `session.expiresIn` and `session.updateAge`.
 - [ ] **`useContext(UserContext)!` without descriptive error** — `src/lib/user-provider.tsx:77`. Throw `'useUserContext must be used within a UserProvider'`.
