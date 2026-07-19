@@ -18,7 +18,6 @@
 - [ ] **No session expiry configured** — `src/lib/auth.ts`. Configure `session.expiresIn` and `session.updateAge`.
 - [ ] **`useContext(UserContext)!` without descriptive error** — `src/lib/user-provider.tsx:77`. Throw `'useUserContext must be used within a UserProvider'`.
 - [ ] **`createEffect` for redirect in sign-in** — `src/routes/sign-in.tsx:20-24`. Use TanStack Router `beforeLoad` guard instead.
-- [ ] **Empty catch blocks** — `src/routes/dashboard.tsx:105`, `src/lib/org-store.ts:9,16`, `src/routes/__root.tsx:73-79`. Always log in `catch`.
 
 ## 🔵 Low
 

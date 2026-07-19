@@ -71,12 +71,16 @@ function VerifyBanner() {
   const show = () => !session().isPending && user() && !user()!.emailVerified
 
   const handleResend = async () => {
-    await authClient.sendVerificationEmail({
-      email: user()!.email,
-      callbackURL: '/verify-email',
-    })
-    setSent(true)
-    setTimeout(() => setSent(false), 4000)
+    try {
+      await authClient.sendVerificationEmail({
+        email: user()!.email,
+        callbackURL: '/verify-email',
+      })
+      setSent(true)
+      setTimeout(() => setSent(false), 4000)
+    } catch (err) {
+      log.error({ err }, 'failed to resend verification email')
+    }
   }
 
   return (
