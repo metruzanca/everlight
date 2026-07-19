@@ -3,7 +3,7 @@ import { createEnv } from '@t3-oss/env-core'
 import { z } from 'zod'
 
 // Only used in development
-config({ path: '.env.local' })
+config({ path: '.env' })
 
 export const env = createEnv({
   server: {

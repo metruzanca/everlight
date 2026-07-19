@@ -16,7 +16,7 @@
 | # | Task | Status | File(s) | Depends On |
 |---|------|--------|---------|------------|
 | 1 | Install `@vapi-ai/server-sdk` | ✅ | `package.json` | — |
-| 2 | Add `VAPI_API_KEY` to `.env.local` + `src/env.ts` | ✅ | `.env.local`, `src/env.ts` | — |
+| 2 | Add `VAPI_API_KEY` to `.env` + `src/env.ts` | ✅ | `.env`, `src/env.ts` | — |
 | 3 | Create `src/lib/vapi.ts` (server-only Vapi client wrapper) | ✅ | `src/lib/vapi.ts` | #1, #2 |
 | 4 | Create `src/routes/api/vapi/stats.ts` (aggregated stats endpoint) | ✅ | `src/routes/api/vapi/stats.ts` | #3 |
 | 5 | Create `src/routes/api/vapi/calls.ts` (paginated call log endpoint) | ✅ | `src/routes/api/vapi/calls.ts` | #3 |

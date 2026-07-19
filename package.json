@@ -5,8 +5,8 @@
   "scripts": {
     "predev": "bun run db:migrate",
     "dev": "vite dev --port 3000",
-    "db:generate": "bun --env-file=.env.local drizzle-kit generate",
-    "db:migrate": "bun --env-file=.env.local drizzle-kit push",
+    "db:generate": "bun --env-file=.env drizzle-kit generate",
+    "db:migrate": "bun --env-file=.env drizzle-kit push",
     "generate-icons": "bun scripts/generate-icons.ts",
     "generate-routes": "tsr generate",
     "build": "vite build",
