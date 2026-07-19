@@ -9,7 +9,6 @@
 
 ## 🟠 High
 
-- [ ] **Race condition in first-user-as-admin logic** — `src/lib/auth.ts:40-43`. Two simultaneous signups can both become admin. Use a dedicated flag table or advisory lock.
 - [ ] **No Zod input validation on API routes** — All POST/PATCH endpoints use manual truthy checks. Create shared Zod schemas.
 
 
