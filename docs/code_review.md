@@ -12,15 +12,15 @@
 
 - [ ] **Org switcher triggers full page reload** — `src/components/ui/org-switcher.tsx:28`. `window.location.reload()` defeats SPA reactivity. Remove reload and make dashboard reactive to org changes.
 - [ ] **Dashboard resources don't reactively track org changes** — `src/routes/dashboard.tsx:71-93`. Both `createResource` calls only track `shouldFetch`, not `orgId`. Change source to `createResource(() => ({ fetch: shouldFetch(), orgId: getSelectedOrgId()() }), fetcher)`.
-- [ ] **`resolveOrgAssistantIds` duplicated** — `src/routes/api/vapi/stats.ts:9-19` and `src/routes/api/vapi/calls.ts:9-19`. Extract to `src/lib/vapi.ts`.
-- [ ] **`formatDuration` duplicated** — `src/lib/format.ts:1-4` vs `src/components/dashboard/stat-cards.tsx:97-101`. Import from `../../lib/format`.
-- [ ] **Duplicate type definitions** — `src/routes/dashboard.tsx:19-39`. `VapiStats` and `VapiCallLogEntry` redefined locally when they exist in `src/lib/vapi.ts:56-76`. Import from there.
+- [x] **`resolveOrgAssistantIds` duplicated** — `src/routes/api/vapi/stats.ts:9-19` and `src/routes/api/vapi/calls.ts:9-19`. Extract to `src/lib/vapi.ts`.
+- [x] **`formatDuration` duplicated** — `src/lib/format.ts:1-4` vs `src/components/dashboard/stat-cards.tsx:97-101`. Import from `../../lib/format`.
+- [x] **Duplicate type definitions** — `src/routes/dashboard.tsx:19-39`. `VapiStats` and `VapiCallLogEntry` redefined locally when they exist in `src/lib/vapi.ts:56-76`. Import from there.
 - [ ] **No rate limiting** — Auth endpoints, invite creation, Vapi proxy have no rate limiting. Brute force / cost-abuse vectors open.
 - [ ] **`GET /api/users` leaks all user data to any authenticated user** — `src/routes/api/users.ts:11-36`. Restrict to site admins or scope to user's own orgs.
 - [ ] **No upper bound on Vapi `limit` parameter** — `src/routes/api/vapi/calls.ts:29`. `?limit=1000000` triggers expensive API call. Use Zod schema with `.max(100)`.
 - [ ] **Race condition in first-user-as-admin logic** — `src/lib/auth.ts:40-43`. Two simultaneous signups can both become admin. Use a dedicated flag table or advisory lock.
-- [ ] **Module-level singleton signal in `org-store.ts`** — `src/lib/org-store.ts:20`. Shared across sessions/tabs. Tie to session lifecycle in `UserProvider`.
-- [ ] **Silent failure in dashboard `onMount`** — `src/routes/dashboard.tsx:105`. Empty `catch {}` — if org-check fetch fails, dashboard stuck in loading. Log error, call `triggerFetch(true)` in `finally`.
+- [x] **Module-level singleton signal in `org-store.ts`** — `src/lib/org-store.ts:20`. Shared across sessions/tabs. Tie to session lifecycle in `UserProvider`.
+- [x] **Silent failure in dashboard `onMount`** — `src/routes/dashboard.tsx:105`. Empty `catch {}` — if org-check fetch fails, dashboard stuck in loading. Log error, call `triggerFetch(true)` in `finally`.
 - [ ] **No Zod input validation on API routes** — All POST/PATCH endpoints use manual truthy checks. Create shared Zod schemas.
 - [ ] **Auth check duplicated across 8 API files** — Every route repeats `auth.api.getSession()` + error check. Create `requireAuth(request)` helper.
 
@@ -44,7 +44,7 @@
 - [ ] **Missing test scripts** — `package.json`. Add `test:watch`, `test:coverage`, `typecheck`.
 - [x] **`nixpacks.toml` uses npm** — Switch to `bun install && bun run build`.
 - [x] **Uses `.env.local` (non-standard)** — Standard is `.env`.
-- [ ] **`alert()` for errors** — `src/routes/users.tsx:56,82,109,130`. Use inline toast/banner.
+- [x] **`alert()` for errors** — `src/routes/users.tsx:56,82,109,130`. Use inline toast/banner.
 - [x] **Biome scope too narrow** — `biome.json`. Include `scripts/`, `docs/`, config files.
-- [ ] **`as Component<any>` on error boundary** — `src/routes/__root.tsx:40`. Properly type the error component.
+- [x] **`as Component<any>` on error boundary** — `src/routes/__root.tsx:40`. Properly type the error component.
 - [ ] **Regex patterns recompiled each time** — `src/routes/dashboard.tsx:164`. Extract to module-level `const BOOKING_PATTERN`.

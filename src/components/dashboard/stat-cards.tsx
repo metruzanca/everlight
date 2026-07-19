@@ -1,5 +1,6 @@
 import { DollarSign, PhoneIncoming, CalendarCheck, PhoneCall, Clock, TrendingUp, TrendingDown } from 'lucide-solid'
 import { cn } from '../../lib/utils'
+import { formatDuration } from '../../lib/format'
 
 export type StatCardsData = {
   totalCallsLifetime: number
@@ -55,7 +56,7 @@ export function StatCards(props: { data: StatCardsData }) {
     },
     {
       label: 'Average call length',
-      value: formatDurationSimple(d.avgCallLength),
+      value: formatDuration(d.avgCallLength),
       sub: 'Minutes per call',
       icon: Clock,
     },
@@ -94,8 +95,4 @@ export function StatCards(props: { data: StatCardsData }) {
   )
 }
 
-function formatDurationSimple(seconds: number) {
-  const m = Math.floor(seconds / 60)
-  const s = Math.floor(seconds % 60)
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
+

@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/solid-router'
 import { createSignal, Show } from 'solid-js'
 import { authClient } from '../../lib/auth-client'
-import { setSelectedOrg } from '../../lib/org-store'
+import { useUserContext } from '../../lib/user-provider'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
@@ -12,6 +12,7 @@ export const Route = createFileRoute('/onboarding/organization')({
 })
 
 function OnboardingOrganization() {
+  const ctx = useUserContext()
   const session = authClient.useSession()
   const navigate = useNavigate()
   const [name, setName] = createSignal('')
@@ -38,7 +39,7 @@ function OnboardingOrganization() {
       }
 
       const body = await res.json()
-      setSelectedOrg(body.organization.id)
+      ctx.setSelectedOrgId(body.organization.id)
       navigate({ to: '/dashboard' })
     } catch {
       setError('Failed to create organization')

@@ -2,7 +2,7 @@ import { createFileRoute, CatchBoundary } from '@tanstack/solid-router'
 import { For, createSignal, createResource, createMemo, Show, Suspense, onMount } from 'solid-js'
 import { Card, CardContent } from '../components/ui/card'
 import { AppNav } from '../components/ui/app-nav'
-import { getSelectedOrgId } from '../lib/org-store'
+import { useUserContext } from '../lib/user-provider'
 import { DashboardShell } from '../components/dashboard/dashboard-shell'
 import { StatCards, type StatCardsData } from '../components/dashboard/stat-cards'
 import { SpendChart, type SpendSeriesEntry } from '../components/dashboard/spend-chart'
@@ -11,32 +11,11 @@ import { CallDatabase, type CallRecord, type CallOutcome } from '../components/d
 import { CallLogsTeaser } from '../components/dashboard/call-logs-teaser'
 import { formatDuration } from '../lib/format'
 import { createLogger } from '../lib/logger'
+import type { VapiStats, VapiCallLogEntry } from '../lib/vapi'
 
 const log = createLogger('Dashboard')
 
 export const Route = createFileRoute('/dashboard')({ component: Dashboard })
-
-type VapiStats = {
-  totalCalls: number
-  callsAnswered: number
-  averageCallDuration: number
-  afterHoursCalls: number
-  appointmentsBooked: number | null
-  bookingRatio: number | null
-}
-
-type VapiCallLogEntry = {
-  id: string
-  phoneNumber: string
-  customerNumber: string
-  duration: number
-  status: string
-  endedReason: string
-  startedAt: string
-  cost: number
-  summary: string | null
-  assistantName: string
-}
 
 function Dashboard() {
   return (
@@ -55,6 +34,7 @@ function Dashboard() {
 }
 
 function DashboardContent() {
+  const ctx = useUserContext()
   const [vapiKeyOk, setVapiKeyOk] = createSignal(true)
   const [shouldFetch, triggerFetch] = createSignal(false)
 
@@ -71,7 +51,7 @@ function DashboardContent() {
   const [stats] = createResource<VapiStats, boolean>(
     shouldFetch,
     async (_) => {
-      const orgId = getSelectedOrgId()()
+      const orgId = ctx.selectedOrgId()
       const params = orgId ? `?orgId=${encodeURIComponent(orgId)}` : ''
       const res = await fetchVapi(`/api/vapi/stats${params}`)
       if (res.status === 500) {
@@ -85,7 +65,7 @@ function DashboardContent() {
   const [callLogs] = createResource<VapiCallLogEntry[], boolean>(
     shouldFetch,
     async (_) => {
-      const orgId = getSelectedOrgId()()
+      const orgId = ctx.selectedOrgId()
       const params = orgId ? `?orgId=${encodeURIComponent(orgId)}` : ''
       const res = await fetchVapi(`/api/vapi/calls${params}`)
       return res.json()
@@ -102,8 +82,11 @@ function DashboardContent() {
           return
         }
       }
-    } catch {}
-    triggerFetch(true)
+    } catch (err) {
+      log.warn({ err }, 'failed to check orgs on mount')
+    } finally {
+      triggerFetch(true)
+    }
   })
 
   const statCardsData = createMemo((): StatCardsData | null => {

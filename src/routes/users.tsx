@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/solid-router'
-import { For, createSignal, Show } from 'solid-js'
+import { For, createSignal, createEffect, Show, onCleanup } from 'solid-js'
 import { createSolidTable, getCoreRowModel, createColumnHelper, flexRender } from '@tanstack/solid-table'
 import { authClient } from '../lib/auth-client'
 import { useUserContext } from '../lib/user-provider'
@@ -38,6 +38,14 @@ function Users() {
   const [deleting, setDeleting] = createSignal<string | null>(null)
   const [showInvite, setShowInvite] = createSignal(false)
   const [removing, setRemoving] = createSignal<string | null>(null)
+  const [error, setError] = createSignal<string | null>(null)
+
+  createEffect(() => {
+    if (error()) {
+      const t = setTimeout(() => setError(null), 4000)
+      onCleanup(() => clearTimeout(t))
+    }
+  })
 
   const handleDelete = async (userId: string) => {
     log.debug({ userId, isAdmin: ctx.isAdmin() }, 'handleDelete')
@@ -53,7 +61,7 @@ function Users() {
       if (!res.ok) {
         const body = await res.json()
         log.warn({ status: res.status, error: body.error }, 'delete failed')
-        alert(body.error || 'Failed to delete user')
+        setError(body.error || 'Failed to delete user')
         return
       }
       log.debug('delete succeeded')
@@ -79,7 +87,7 @@ function Users() {
       if (!res.ok) {
         const body = await res.json()
         log.warn({ status: res.status, error: body.error }, 'remove failed')
-        alert(body.error || 'Failed to remove member')
+        setError(body.error || 'Failed to remove member')
         return
       }
       log.debug('remove succeeded')
@@ -106,7 +114,7 @@ function Users() {
     if (!res.ok) {
       const body = await res.json()
       log.warn({ error: body.error }, 'leave failed')
-      alert(body.error || 'Failed to leave')
+      setError(body.error || 'Failed to leave')
       return
     }
     log.debug('leave succeeded')
@@ -127,7 +135,7 @@ function Users() {
       if (!res.ok) {
         const body = await res.json()
         log.warn({ status: res.status, error: body.error }, 'toggle failed')
-        alert(body.error || 'Failed to update setting')
+        setError(body.error || 'Failed to update setting')
         return
       }
       log.debug('toggle succeeded')
@@ -242,6 +250,14 @@ function Users() {
     <div class="min-h-screen">
       <AppNav />
       <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+        <Show when={error()}>
+          {(msg) => (
+            <div class="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+              {msg()}
+              <button onClick={() => setError(null)} class="ml-2 underline">Dismiss</button>
+            </div>
+          )}
+        </Show>
         <h1 class="text-2xl font-heading font-bold">Users</h1>
 
         <Show when={table()}>

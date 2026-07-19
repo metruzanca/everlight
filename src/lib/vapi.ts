@@ -39,6 +39,18 @@ const businessHours = {
  * Returns null for unrestricted access (admin without org filter).
  * Returns [] when the user has no access to any assistant.
  */
+export async function resolveOrgAssistantIds(userId: string, orgId?: string | null): Promise<string[] | null> {
+  if (orgId === 'all') return null
+  if (orgId) {
+    const assignments = await db.select().from(orgAssistant).where(eq(orgAssistant.orgId, orgId))
+    return assignments.map((a) => a.assistantId)
+  }
+  const memberships = await db.select().from(orgMember).where(eq(orgMember.userId, userId)).limit(1)
+  if (memberships.length === 0) return []
+  const firstOrg = await db.select().from(orgAssistant).where(eq(orgAssistant.orgId, memberships[0].orgId))
+  return firstOrg.map((a) => a.assistantId)
+}
+
 export async function getUserAssistantIds(userId: string): Promise<string[] | null> {
   const user = await db.select().from(userSchema).where(eq(userSchema.id, userId)).limit(1)
   if (user.length === 0) return []

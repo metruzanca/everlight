@@ -11,7 +11,7 @@ import {
 } from 'solid-js'
 import { isServer } from 'solid-js/web'
 import { authClient } from './auth-client'
-import { getSelectedOrgId, setSelectedOrg, initSelectedOrg } from './org-store'
+import { loadSavedOrgId, saveOrgId } from './org-store'
 
 type UserEntry = {
   id: string
@@ -93,12 +93,22 @@ function UserDataLayer(props: {
 }) {
   const [fetchTick] = createSignal(!isServer)
 
+  const [rawSelectedOrgId, setRawSelectedOrgId] = createSignal<string | null>(null)
+
   onMount(() => {
-    if (!isServer) initSelectedOrg()
+    if (!isServer) {
+      const saved = loadSavedOrgId()
+      if (saved) setRawSelectedOrgId(saved)
+    }
+  })
+
+  createEffect(() => {
+    const id = rawSelectedOrgId()
+    saveOrgId(id)
   })
 
   const selectedOrgId = createMemo(() => {
-    const id = getSelectedOrgId()()
+    const id = rawSelectedOrgId()
     return !id || id === 'all' ? null : id
   })
 
@@ -142,9 +152,9 @@ function UserDataLayer(props: {
 
   createEffect(() => {
     const list = orgs()
-    const current = getSelectedOrgId()()
+    const current = rawSelectedOrgId()
     if (!current && list.length > 0) {
-      setSelectedOrg(isAdmin() ? 'all' : list[0].id)
+      setRawSelectedOrgId(isAdmin() ? 'all' : list[0].id)
     }
   })
 
@@ -167,7 +177,7 @@ function UserDataLayer(props: {
     orgsLoading: () => orgsData.loading,
     isAdmin,
     selectedOrgId,
-    setSelectedOrgId: setSelectedOrg,
+    setSelectedOrgId: setRawSelectedOrgId,
     users,
     usersLoading: () => usersData.loading,
     firstUserId,

@@ -18,7 +18,7 @@ import '@fontsource/geist-mono/400.css'
 import '@fontsource/geist-mono/500.css'
 
 import { HydrationScript } from 'solid-js/web'
-import { Show, Suspense, createSignal, type Component } from 'solid-js'
+import { Show, Suspense, createSignal } from 'solid-js'
 
 import styleCss from '../styles.css?url'
 import { authClient } from '../lib/auth-client'
@@ -35,10 +35,10 @@ export const Route = createRootRouteWithContext()({
       { rel: 'apple-touch-icon', href: '/logo-192.png' },
     ],
   }),
-  errorComponent: (({ error, reset }) => (
+  errorComponent: (({ error, reset }: { error: unknown; reset?: () => void }) => (
     <AppError error={error} reset={reset} />
-  )) as Component<any>,
-  notFoundComponent: (() => <AppNotFound />) as Component<any>,
+  )),
+  notFoundComponent: (() => <AppNotFound />),
   shellComponent: RootComponent,
 })
 
