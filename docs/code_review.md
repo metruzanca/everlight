@@ -15,7 +15,6 @@
 - [ ] **Non-null assertions on potentially null values (10+ instances)** — `src/routes/__root.tsx:71,75`, `src/routes/reset-password.tsx:43`, `src/components/dashboard/spend-chart.tsx:100,162-197`, `src/routes/users.tsx:418`. Replace with optional chaining / guard checks.
 - [ ] **Invite tokens in URL query params** — `src/routes/api/invites.ts:13`. Exposed to browser history, server logs, Referer header. Use POST body only.
 - [ ] **Missing security headers** — No CSP, HSTS, X-Frame-Options, X-Content-Type-Options. Add at Nitro/reverse proxy layer.
-- [ ] **No server-side password strength** — `src/lib/auth.ts`. Add `minPasswordLength: 8` to `emailAndPassword` config.
 - [ ] **No session expiry configured** — `src/lib/auth.ts`. Configure `session.expiresIn` and `session.updateAge`.
 - [ ] **`useContext(UserContext)!` without descriptive error** — `src/lib/user-provider.tsx:77`. Throw `'useUserContext must be used within a UserProvider'`.
 - [ ] **`createEffect` for redirect in sign-in** — `src/routes/sign-in.tsx:20-24`. Use TanStack Router `beforeLoad` guard instead.

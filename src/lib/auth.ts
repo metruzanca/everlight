@@ -90,6 +90,7 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
+    minPasswordLength: 8,
     sendResetPassword: async ({ user, token }) => {
       const resetUrl = `${baseUrl}/reset-password?token=${token}`
       await sendEmail(
