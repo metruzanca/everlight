@@ -95,10 +95,12 @@ export function SpendChart(props: {
             <p class="font-heading text-2xl font-bold tracking-tight">
               ${totalSpend().toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </p>
-            <Show when={props.minutesIncluded != null && props.minutesIncluded > 0}>
-              <p class="text-xs text-muted-foreground">
-                {props.minutesUsed.toLocaleString()} / {props.minutesIncluded!.toLocaleString()} min used
-              </p>
+            <Show when={props.minutesIncluded != null && props.minutesIncluded > 0 && props.minutesIncluded}>
+              {(min) => (
+                <p class="text-xs text-muted-foreground">
+                  {props.minutesUsed.toLocaleString()} / {min.toLocaleString()} min used
+                </p>
+              )}
             </Show>
           </div>
         </div>
@@ -159,46 +161,50 @@ export function SpendChart(props: {
               <path d={areaPath()} fill="url(#spendFill)" />
               <path d={linePath()} fill="none" stroke="#22e6f2" stroke-width={2} />
 
-              {tooltipInfo() && (
-                <g>
-                  <line
-                    x1={x(tooltipInfo()!.idx)}
-                    y1={pad.t}
-                    x2={x(tooltipInfo()!.idx)}
-                    y2={pad.t + ch}
-                    stroke="#22e6f2"
-                    stroke-opacity={0.3}
-                    stroke-width={1}
-                  />
-                  <circle
-                    cx={x(tooltipInfo()!.idx)}
-                    cy={y(tooltipInfo()!.entry.spend)}
-                    r={4}
-                    fill="#22e6f2"
-                    stroke="#0a0f14"
-                    stroke-width={2}
-                  />
-                </g>
-              )}
+              <Show when={tooltipInfo()}>
+                {(info) => (
+                  <g>
+                    <line
+                      x1={x(info().idx)}
+                      y1={pad.t}
+                      x2={x(info().idx)}
+                      y2={pad.t + ch}
+                      stroke="#22e6f2"
+                      stroke-opacity={0.3}
+                      stroke-width={1}
+                    />
+                    <circle
+                      cx={x(info().idx)}
+                      cy={y(info().entry.spend)}
+                      r={4}
+                      fill="#22e6f2"
+                      stroke="#0a0f14"
+                      stroke-width={2}
+                    />
+                  </g>
+                )}
+              </Show>
             </svg>
 
-            {tooltipInfo() && (
-              <div
-                class="absolute pointer-events-none z-10"
-                style={{
-                  left: `${x(tooltipInfo()!.idx)}px`,
-                  top: `${y(tooltipInfo()!.entry.spend) - 8}px`,
-                  transform: 'translate(-50%, -100%)',
-                }}
-              >
-                <div class="rounded-lg border border-border bg-background/95 px-3 py-2 text-xs shadow-lg backdrop-blur whitespace-nowrap">
-                  <p class="text-muted-foreground">{tooltipInfo()!.entry.date}</p>
-                  <p class="mt-0.5 font-heading text-sm font-semibold text-primary">
-                    ${tooltipInfo()!.entry.spend.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                  </p>
+            <Show when={tooltipInfo()}>
+              {(info) => (
+                <div
+                  class="absolute pointer-events-none z-10"
+                  style={{
+                    left: `${x(info().idx)}px`,
+                    top: `${y(info().entry.spend) - 8}px`,
+                    transform: 'translate(-50%, -100%)',
+                  }}
+                >
+                  <div class="rounded-lg border border-border bg-background/95 px-3 py-2 text-xs shadow-lg backdrop-blur whitespace-nowrap">
+                    <p class="text-muted-foreground">{info().entry.date}</p>
+                    <p class="mt-0.5 font-heading text-sm font-semibold text-primary">
+                      ${info().entry.spend.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </Show>
           </Show>
 
           <Show when={data().length <= 1}>

@@ -431,7 +431,7 @@ function Users() {
       </main>
 
       <InviteDialog
-        orgId={ctx.selectedOrgId()!}
+        orgId={ctx.selectedOrgId() ?? ''}
         open={showInvite()}
         onClose={() => {
           log.debug('invite dialog closed, refetching members')

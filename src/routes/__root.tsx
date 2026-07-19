@@ -68,12 +68,12 @@ function VerifyBanner() {
   const [sent, setSent] = createSignal(false)
 
   const user = () => session().data?.user
-  const show = () => !session().isPending && user() && !user()!.emailVerified
+  const show = () => !session().isPending && user() && !user()?.emailVerified
 
   const handleResend = async () => {
     try {
       await authClient.sendVerificationEmail({
-        email: user()!.email,
+        email: user()?.email ?? '',
         callbackURL: '/verify-email',
       })
       setSent(true)

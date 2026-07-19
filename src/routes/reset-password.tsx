@@ -31,7 +31,8 @@ function ResetPassword() {
       return
     }
 
-    if (!token()) {
+    const t = token()
+    if (!t) {
       setError('Invalid or missing reset token')
       return
     }
@@ -40,7 +41,7 @@ function ResetPassword() {
 
     const { error: resetError } = await authClient.resetPassword({
       newPassword: password(),
-      token: token()!,
+      token: t,
     })
 
     if (resetError) {
