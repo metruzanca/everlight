@@ -112,8 +112,10 @@ function UserDataLayer(props: {
     return !id || id === 'all' ? null : id
   })
 
+  const hasSession = () => !!props.session().data?.user
+
   const [orgsData] = createResource(
-    fetchTick,
+    () => hasSession(),
     async () => {
       const res = await fetch('/api/organizations')
       if (res.status === 401) {
